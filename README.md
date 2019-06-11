@@ -11,17 +11,18 @@ Additionally, we need to bring forward into NG the automated routines that we us
 ## Goals
 
 1. Store information about relationships between e-prints and external resources:
-  - Published versions, e.g. via DOIs
-  - Datasets
-  - Code repositories
-  - Multimedia
-  - Methods/protocols
-  - Related works
-  - Blogs and other websites
-  - Etc
+    
+    - Published versions, e.g. via DOIs
+    - Datasets
+    - Code repositories
+    - Multimedia
+    - Methods/protocols
+    - Related works
+    - Blogs and other websites
+    - Etc
 2. Track provenance/history of this information.
-  - When it was added,
-  - How/by whom
+    - When it was added,
+    - How/by whom
 3. Provide APIs for retrieving this information, adding new relations.
 4. Provide an intuitive user interface for authors to curate these relations for their e-prints.
 
@@ -31,18 +32,18 @@ Additionally, we need to bring forward into NG the automated routines that we us
 2. Authorized API clients can add, edit, deactivate relationships via JSON API. Read aggregated relations, read detailed provenance log. 
 3. Anonymous users, clients can view/read aggregated relations, provenance of active relations.
 3. Relation data are immutable. 
-  - Add means create new assertion about relation.
-  - Edit means create new assertion that supercedes a previous assertion.
-  - Deactivate means create new assertion that a previous relation is incorrect, should be suppressed.
+    - Add means create new assertion about relation.
+    - Edit means create new assertion that supercedes a previous assertion.
+    - Deactivate means create new assertion that a previous relation is incorrect, should be suppressed.
 4. Relation data model includes  
-  - Type of relation
-  - E-print id and version
-  - Type of resource
-  - Canonical identifier for resource (doi, uri, etc)
-  - Freeform description of relation
-  - Datetime added
-  - Client + user who created
-  - identifier of relation superceded or suppressed
+    - Type of relation
+    - E-print id and version
+    - Type of resource
+    - Canonical identifier for resource (doi, uri, etc)
+    - Freeform description of relation
+    - Datetime added
+    - Client + user who created
+    - identifier of relation superceded or suppressed
 5. Emits event on Kinesis stream when data is added.
 6. For each resource type, mechanism to verify that resource exists.
 
