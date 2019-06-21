@@ -1,11 +1,11 @@
 """
 Request controllers for the external links service.
 
-These may be used handle requests originating from the :mod:`.routes.api` and/or the
-:mod:`.routes.ui`.
+These may be used handle requests originating from the :mod:`.routes.api`
+and/or the :mod:`.routes.ui`.
 
-If the behavior of these controllers diverges along the UI/API lines, then we can split this
-into ``controllers/api.py`` and ``controllers/ui.py``.
+If the behavior of these controllers diverges along the UI/API lines, then we
+can split this into ``controllers/api.py`` and ``controllers/ui.py``.
 """
 
 from typing import Tuple, Any, Dict

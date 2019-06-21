@@ -13,7 +13,7 @@ from . import routes
 
 def create_ui_app() -> Flask:
     """Create a new UI application."""
-    app = Flask('fulltext')
+    app = Flask('relations')
     app.config.from_pyfile('config.py')
     Base(app)
     auth.Auth(app)
@@ -25,7 +25,7 @@ def create_ui_app() -> Flask:
 
 def create_api_app() -> Flask:
     """Create a new API application."""
-    app = Flask('fulltext')
+    app = Flask('relations')
     app.config.from_pyfile('config.py')
     Base(app)
     auth.Auth(app)
