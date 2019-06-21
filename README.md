@@ -77,3 +77,8 @@ corresponding ``wsgi_[xxx].py`` entrypoints.
 Please see the [arXiv contributor
 guidelines](https://github.com/arXiv/.github/blob/master/CONTRIBUTING.md) for
 tips on getting started.
+
+## Code of Conduct
+
+All contributors are expected to adhere to the [arXiv Code of
+Conduct](https://arxiv.org/help/policies/code_of_conduct).
