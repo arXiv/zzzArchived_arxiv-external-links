@@ -71,3 +71,9 @@ FLASK_APP=ui.py FLASK_DEBUG=1 pipenv run flask run
 
 Dockerfiles are also provided in the root of this repository. These use uWSGI and the
 corresponding ``wsgi_[xxx].py`` entrypoints.
+
+## Contributing
+
+Please see the [arXiv contributor
+guidelines](https://github.com/arXiv/.github/blob/master/CONTRIBUTING.md) for
+tips on getting started.
