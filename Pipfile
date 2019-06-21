@@ -4,6 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+nose2 = "*"
+coverage = "*"
+coveralls = "*"
+mypy = "*"
+pylint = "*"
+pydocstyle = "*"
 
 [packages]
 flask = "*"
