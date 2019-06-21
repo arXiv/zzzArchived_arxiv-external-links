@@ -1,0 +1,18 @@
+language: python
+cache: pip
+sudo: required
+services:
+  - docker
+os:
+  - linux
+python:
+  - "3.6"
+script:
+  - pip install -U pip pipenv
+  - pipenv install --dev
+  - pipenv run nose2 --with-coverage --coverage-report=term-missing
+after_success:
+  - coveralls
+  - "./tests/lint.sh relations"
+  - "./tests/style.sh relations"
+  - "./tests/type-check.sh relations"

@@ -54,3 +54,20 @@ Additionally, we need to bring forward into NG the automated routines that we us
 3. Use [arXiv base](https://github.com/arXiv/arxiv-base) for base templates, error handling, etc
 4. Use [arXiv auth](https://github.com/arXiv/arxiv-auth) for authn/z
 5. API documented with OpenAPI 3 and JSON schema
+
+## Quick-start
+
+We use [Pipenv](https://github.com/pypa/pipenv) for dependency management.
+
+```bash
+pipenv install --dev
+```
+
+You can run either the API or the UI using the Flask development server.
+
+```bash
+FLASK_APP=ui.py FLASK_DEBUG=1 pipenv run flask run
+```
+
+Dockerfiles are also provided in the root of this repository. These use uWSGI and the
+corresponding ``wsgi_[xxx].py`` entrypoints.
