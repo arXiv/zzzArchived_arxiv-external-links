@@ -5,7 +5,6 @@ from enum import Enum, auto
 from typing import NamedTuple, Optional
 
 ArXivID = str
-ResourceType = str
 RelationID = str
 
 
@@ -24,14 +23,20 @@ class RelationType(Enum):
     DEACTIVATE = auto()
 
 
+class Resource(NamedTuple):
+    """Domain class of resources."""
+
+    resource_type: str
+    identifier: str
+
+
 class Relation(NamedTuple):
     """The core domain class of relations."""
 
     identifier: RelationID
     relation_type: RelationType
     e_print: EPrint
-    resource_type: ResourceType
-    resource_id: str
+    resource: Resource
     description: str
     added_at: datetime
     creator: Optional[str]
