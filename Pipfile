@@ -10,6 +10,8 @@ coveralls = "*"
 mypy = "*"
 pylint = "*"
 pydocstyle = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
 
 [packages]
 flask = "*"
