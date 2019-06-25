@@ -20,7 +20,7 @@ class RelationType(Enum):
 
     ADD = auto()
     EDIT = auto()
-    DEACTIVATE = auto()
+    SUPPRESS = auto()
 
 
 class Resource(NamedTuple):
@@ -40,4 +40,4 @@ class Relation(NamedTuple):
     description: str
     added_at: datetime
     creator: Optional[str]
-    superceded_or_suppressed: Optional[RelationID]
+    supercedes_or_suppresses: Optional[RelationID]
