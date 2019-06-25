@@ -1,0 +1,46 @@
+{
+    "title": "RelationAssertion",
+    "description": "Relation concepts and rules.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "@type": {
+            "type": "string"
+        },
+        "arxiv_id": {
+            "description": "Canonical arXiv e-print identifier",
+            "type": "string"
+        },
+        "RelationID": {
+            "description": "Relation ID",
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "type": "string"
+                },
+                "added_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "resource": {
+                    "description": "Resource",
+                    "type": "object",
+                    "properties": {
+                        "@type": {
+                            "type": "string"
+                        },
+                        "resource_type": {
+                            "type": "string"
+                        },
+                        "identifier": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
