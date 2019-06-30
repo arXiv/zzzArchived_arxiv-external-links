@@ -8,6 +8,16 @@ ArXivID = str
 RelationID = str
 
 
+def resolve_arxiv_id(s: str) -> ArXivID:
+    """Resolve string that represents an arXiv ID to ArXivID."""
+    return s
+
+
+def resolve_relation_id(s: str) -> RelationID:
+    """Resolve string that represents a relation ID to RelationID."""
+    return s
+
+
 class EPrint(NamedTuple):
     """Info of E-print."""
 
