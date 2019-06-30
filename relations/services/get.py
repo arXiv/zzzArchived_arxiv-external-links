@@ -1,5 +1,5 @@
 """Service for relation retrlieval."""
-from domain import Relation, RelationID
+from relations.domain import Relation, RelationID
 
 
 class NotFoundError(Exception):

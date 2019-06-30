@@ -13,10 +13,10 @@ from http import HTTPStatus
 import json
 
 from werkzeug.datastructures import MultiDict
-from domain import Relation, RelationID, RelationType, ArXivID, \
-    resolve_arxiv_id, resolve_relation_id
-from services.create import create
-from services.get import from_id, NotFoundError
+from relations.domain import Relation, RelationID, RelationType, ArXivID, \
+    resolve_arxiv_id, resolve_relation_id, support_json_default
+from relations.services.create import create, StorageError
+from relations.services.get import from_id, NotFoundError
 
 Response = Tuple[Dict[str, Any], HTTPStatus, Dict[str, str]]
 
@@ -77,20 +77,27 @@ def create_new(arxiv_id_str: str,
     arxiv_id: ArXivID = resolve_arxiv_id(arxiv_id_str)
 
     # get relation
-    rel: Relation = create(arxiv_id,
-                           arxiv_ver,
-                           None,
-                           RelationType.ADD,
-                           resource_type,
-                           resource_id,
-                           description,
-                           creator)
+    try:
+        rel: Relation = create(arxiv_id,
+                               arxiv_ver,
+                               None,
+                               RelationType.ADD,
+                               resource_type,
+                               resource_id,
+                               description,
+                               creator)
 
-    # create the result value
-    result: Dict[str, Any] = {str(rel.identifier): json.dumps(rel)}
+        # create the result value
+        result: Dict[str, Any] = \
+            {str(rel.identifier): json.dumps(rel, default=support_json_default)}
 
-    # return
-    return result, HTTPStatus.OK, {}
+        # return
+        return result, HTTPStatus.OK, {}
+
+    except StorageError:
+        return {}, \
+                HTTPStatus.INTERNAL_SERVER_ERROR, \
+                {"error": "An error occured in storage"}
 
 
 def supercede(arxiv_id_str: str,
@@ -147,26 +154,33 @@ def supercede(arxiv_id_str: str,
         # try get the previous relation
         from_id(prev_rel_id)
 
+        # get new relations that supercedes the prev
+        new_rel: Relation = create(arxiv_id,
+                                   arxiv_ver,
+                                   prev_rel_id,
+                                   RelationType.EDIT,
+                                   resource_type,
+                                   resource_id,
+                                   description,
+                                   creator)
+
+        # create the result value
+        result: Dict[str, Any] = \
+            {str(new_rel.identifier):
+             json.dumps(new_rel, default=support_json_default)}
+
+        # return
+        return result, HTTPStatus.OK, {"previous": relation_id_str}
+
     except NotFoundError:
         return {}, \
                 HTTPStatus.INTERNAL_SERVER_ERROR, \
                 {"error": "The previous relation cannot be found"}
 
-    # get new relations that supercedes the prev
-    new_rel: Relation = create(arxiv_id,
-                               arxiv_ver,
-                               prev_rel_id,
-                               RelationType.EDIT,
-                               resource_type,
-                               resource_id,
-                               description,
-                               creator)
-
-    # create the result value
-    result: Dict[str, Any] = {str(new_rel.identifier): json.dumps(new_rel)}
-
-    # return
-    return result, HTTPStatus.OK, {"previous": relation_id_str}
+    except StorageError:
+        return {}, \
+                HTTPStatus.INTERNAL_SERVER_ERROR, \
+                {"error": "An error occured in storage"}
 
 
 def suppress(arxiv_id_str: str,
@@ -226,7 +240,9 @@ def suppress(arxiv_id_str: str,
                                    creator)
 
         # create the result value
-        result: Dict[str, Any] = {str(new_rel.identifier): json.dumps(new_rel)}
+        result: Dict[str, Any] = \
+            {str(new_rel.identifier):
+             json.dumps(new_rel, default=support_json_default)}
 
         # return
         return result, HTTPStatus.OK, {"previous": relation_id_str}
@@ -235,3 +251,8 @@ def suppress(arxiv_id_str: str,
         return {}, \
                 HTTPStatus.INTERNAL_SERVER_ERROR, \
                 {"error": "The previous relation cannot be found"}
+
+    except StorageError:
+        return {}, \
+                HTTPStatus.INTERNAL_SERVER_ERROR, \
+                {"error": "An error occured in storage"}

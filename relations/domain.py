@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum, auto
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Any
 
 ArXivID = str
 RelationID = str
@@ -51,3 +51,18 @@ class Relation(NamedTuple):
     added_at: datetime
     creator: Optional[str]
     supercedes_or_suppresses: Optional[RelationID]
+
+
+def support_json_default(o: Any) -> Any:
+    """Support JSON serialization of Relation."""
+    if isinstance(o, RelationType):
+        if o == RelationType.ADD:
+            return "ADD"
+        elif o == RelationType.EDIT:
+            return "EDIT"
+        else:  # RelationType.SUPPRESS
+            return "SUPPRESS"
+    elif isinstance(o, datetime):
+        return o.isoformat()
+
+    raise TypeError(repr(o) + " is not JSON serializable")

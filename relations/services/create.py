@@ -1,7 +1,13 @@
 """Service for new relation creation."""
 
-from domain import ArXivID, Relation, RelationID, RelationType
+from relations.domain import ArXivID, Relation, RelationID, RelationType
 from typing import Optional
+
+
+class StorageError(Exception):
+    """Error that happens in strage of data."""
+
+    pass
 
 
 def create(arxiv_id: ArXivID,
@@ -44,7 +50,7 @@ def create(arxiv_id: ArXivID,
     Returns
     -------
     Relation
-        The newly-created relations.
+        The newly-created relation.
 
     """
     pass  # not implemented yet
