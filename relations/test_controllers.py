@@ -257,7 +257,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.side_effect = StorageError
+        mock_create.return_value = new_rel
 
         # test
         payload = {

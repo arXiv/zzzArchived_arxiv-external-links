@@ -165,7 +165,7 @@ def suppress(arxiv_id_str: str,
     arxiv_ver: int
         The version of the e-print.
     relation_id_str: str
-        The previous relation ID to be superceded.
+        The previous relation ID to be suppressed.
     payload: Dict[str, Any]
         Payload info.
 
@@ -173,10 +173,8 @@ def suppress(arxiv_id_str: str,
     -------
     Dict[str, Any]
         A relation ID as a key and the corresponding relation as its value.
-
     HTTPStatus
         An HTTP status code.
-
     Dict[str, str]
         The previous relation ID.
 

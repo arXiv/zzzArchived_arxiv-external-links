@@ -25,26 +25,19 @@ def create(arxiv_id: ArXivID,
     ----------
     arxiv_id: ArXivID
         The arXiv ID of the e-print.
-
     arxiv_ver: int
         The version of the e-print.
-
     relation_id: RelationID
         THe relation ID to be superceded.
-
     relation_type: RelationType
         THe type of this relation i.e., ADD, EDIT, or SUPPRESS.
-
     resource_type: str
         The type of the corresponding resource.
-
     resource_id: str
         An identifier of the resource e.g., DOI.
-
     description: str
         A description for the relation.
-
-    creator: str
+    creator: Optional[str]
         Info of the user/app who requested this relation creation.
 
     Returns
