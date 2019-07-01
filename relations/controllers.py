@@ -13,6 +13,7 @@ from http import HTTPStatus
 import json
 
 from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
 from relations.services.create import create, StorageError
@@ -32,10 +33,7 @@ def service_status(params: MultiDict) -> Response:
 
 def create_new(arxiv_id_str: str,
                arxiv_ver: int,
-               resource_type: str,
-               resource_id: str,
-               description: str,
-               creator: str) -> Response:
+               payload: Dict[str, Any]) -> Response:
     """
     Create a new relation for an e-print.
 
@@ -43,21 +41,10 @@ def create_new(arxiv_id_str: str,
     ----------
     arxiv_id_str: str
         The arXiv ID of the e-print.
-
     arxiv_ver: int
         The version of the e-print.
-
-    resource_type: str
-        The type of the corresponding resource.
-
-    resource_id: str
-        An identifier of the resource e.g., DOI.
-
-    description: str
-        A description for the relation.
-
-    creator: str
-        Info of the user/app who requested this relation creation.
+    payload: Dict[str, Any]
+        Payload info.
 
     Returns
     -------
@@ -65,10 +52,8 @@ def create_new(arxiv_id_str: str,
         The newly-created relations, whose key is an ID,
             and whose value is the corresponding relation in JSON format.
         Blank if it fails.
-
     HTTPStatus
         An HTTP status code.
-
     Dict[str, str]
         A blank dict.
 
@@ -82,10 +67,10 @@ def create_new(arxiv_id_str: str,
                                arxiv_ver,
                                None,
                                RelationType.ADD,
-                               resource_type,
-                               resource_id,
-                               description,
-                               creator)
+                               payload['resource_type'],
+                               payload['resource_id'],
+                               payload.get('description', ''),
+                               payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \
@@ -94,19 +79,17 @@ def create_new(arxiv_id_str: str,
         # return
         return result, HTTPStatus.OK, {}
 
-    except StorageError:
-        return {}, \
-                HTTPStatus.INTERNAL_SERVER_ERROR, \
-                {"error": "An error occured in storage"}
+    except KeyError as ke:
+        raise InternalServerError(f"A value of {str(ke)} not found")
+
+    except StorageError as se:
+        raise InternalServerError("An error occured in storage") from se
 
 
 def supercede(arxiv_id_str: str,
               arxiv_ver: int,
               relation_id_str: str,
-              resource_type: str,
-              resource_id: str,
-              description: str,
-              creator: str) -> Response:
+              payload: Dict[str, Any]) -> Response:
     """
     Create a new relation that supercedes an existing relation for an e-print.
 
@@ -114,36 +97,21 @@ def supercede(arxiv_id_str: str,
     ----------
     arxiv_id_str: str
         The arXiv ID of the e-print.
-
     arxiv_ver: int
         The version of the e-print.
-
     relation_id_str: str
-        THe relation ID to be superceded.
-
-    resource_type: str
-        The type of the corresponding resource.
-
-    resource_id: str
-        An identifier of the resource e.g., DOI.
-
-    description: str
-        A description for the relation.
-
-    creator: str
-        Info of the user/app who requested this relation creation.
+        The previous relation ID to be superceded.
+    payload: Dict[str, Any]
+        Payload info.
 
     Returns
     -------
-    dict: Dict[str, Any]
+    Dict[str, Any]
         A relation ID as a key and the corresponding relation as its value.
-        Blank if it fails.
-
     HTTPStatus
         An HTTP status code.
-
-    dict: Dict[str, str]
-        The previous relation ID if it succeeds, or an error message otherwise.
+    Dict[str, str]
+        The previous relation ID.
 
     """
     # get arxiv ID from str
@@ -159,10 +127,10 @@ def supercede(arxiv_id_str: str,
                                    arxiv_ver,
                                    prev_rel_id,
                                    RelationType.EDIT,
-                                   resource_type,
-                                   resource_id,
-                                   description,
-                                   creator)
+                                   payload['resource_type'],
+                                   payload['resource_id'],
+                                   payload.get('description', ''),
+                                   payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \
@@ -172,22 +140,21 @@ def supercede(arxiv_id_str: str,
         # return
         return result, HTTPStatus.OK, {"previous": relation_id_str}
 
-    except NotFoundError:
-        return {}, \
-                HTTPStatus.INTERNAL_SERVER_ERROR, \
-                {"error": "The previous relation cannot be found"}
+    except KeyError as ke:
+        raise InternalServerError(f"A value of {str(ke)} not found")
 
-    except StorageError:
-        return {}, \
-                HTTPStatus.INTERNAL_SERVER_ERROR, \
-                {"error": "An error occured in storage"}
+    except NotFoundError as nfe:
+        raise InternalServerError("The previous relation cannot be found") \
+            from nfe
+
+    except StorageError as se:
+        raise InternalServerError("An error occured in storage") from se
 
 
 def suppress(arxiv_id_str: str,
              arxiv_ver: int,
              relation_id_str: str,
-             description: str,
-             creator: str) -> Response:
+             payload: Dict[str, Any]) -> Response:
     """
     Create a new relation that suppresses an existing relation for an e-print.
 
@@ -195,30 +162,23 @@ def suppress(arxiv_id_str: str,
     ----------
     arxiv_id_str: str
         The arXiv ID of the e-print.
-
     arxiv_ver: int
         The version of the e-print.
-
     relation_id_str: str
-        THe relation ID to be superceded.
-
-    description: str
-        A description for the relation.
-
-    creator: str
-        Info of the user/app who requested this relation creation.
+        The previous relation ID to be superceded.
+    payload: Dict[str, Any]
+        Payload info.
 
     Returns
     -------
-    dict: Dict[str, Any]
+    Dict[str, Any]
         A relation ID as a key and the corresponding relation as its value.
-        Blank if it fails.
 
     HTTPStatus
         An HTTP status code.
 
-    dict: Dict[str, str]
-        The previous relation ID if it succeeds, or an error message otherwise.
+    Dict[str, str]
+        The previous relation ID.
 
     """
     # get arxiv ID from str
@@ -236,8 +196,8 @@ def suppress(arxiv_id_str: str,
                                    RelationType.SUPPRESS,
                                    prev_rel.resource.resource_type,
                                    prev_rel.resource.identifier,
-                                   description,
-                                   creator)
+                                   payload.get('escription', ''),
+                                   payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \
@@ -247,12 +207,9 @@ def suppress(arxiv_id_str: str,
         # return
         return result, HTTPStatus.OK, {"previous": relation_id_str}
 
-    except NotFoundError:
-        return {}, \
-                HTTPStatus.INTERNAL_SERVER_ERROR, \
-                {"error": "The previous relation cannot be found"}
+    except NotFoundError as nfe:
+        raise InternalServerError("The previous relation cannot be found") \
+            from nfe
 
-    except StorageError:
-        return {}, \
-                HTTPStatus.INTERNAL_SERVER_ERROR, \
-                {"error": "An error occured in storage"}
+    except StorageError as se:
+        raise InternalServerError("An error occured in storage") from se

@@ -17,7 +17,7 @@ def create(arxiv_id: ArXivID,
            resource_type: str,
            resource_id: str,
            description: str,
-           creator: str) -> Relation:
+           creator: Optional[str]) -> Relation:
     """
     Create a new relation for an e-print.
 
