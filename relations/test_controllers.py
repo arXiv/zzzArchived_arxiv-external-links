@@ -5,7 +5,7 @@ from unittest import TestCase, mock
 from datetime import datetime
 from typing import Any
 from werkzeug.exceptions import InternalServerError
-from relations.controllers import create_new, supercede, suppress
+from relations.controllers import create_new, supercede, suppress, retrieve
 from relations.domain import Relation, RelationType, EPrint, Resource, \
     support_json_default
 from relations.services.create import StorageError
@@ -470,3 +470,37 @@ class TestRelationController(TestCase):
                                           new_rel.e_print.version,
                                           prev_rel.identifier,
                                           payload)
+
+    @mock.patch('relations.controllers.from_e_print')
+    def test_retrieve_with_success(self, mock_from_e_print: Any) -> None:
+        """:func:`.retrieve` gets a relation."""
+        rel = Relation(identifier="123",
+                       relation_type=RelationType.ADD,
+                       e_print=EPrint(arxiv_id="1234.56789",
+                                      version=3),
+                       resource=Resource(resource_type="DOI",
+                                         identifier="10.1023/hoge.2013.7.24"),
+                       description="test",
+                       added_at=datetime(2019, 7, 1),
+                       creator="tester",
+                       supercedes_or_suppresses=None)
+        mock_from_e_print.return_value = [rel]
+
+        # test
+        res1, status, res2 = retrieve(rel.e_print.arxiv_id,
+                                      rel.e_print.version,
+                                      True)
+        self.assertDictEqual(res1, {rel.identifier: rel})
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertDictEqual(res2, {})
+
+    @mock.patch('relations.controllers.from_e_print')
+    def test_retrieve_with_fail(self, mock_from_e_print: Any) -> None:
+        """:func:`.retrieve` fails in accessing `services`."""
+        mock_from_e_print.side_effect = DBLookUpError
+
+        # test
+        with self.assertRaises(InternalServerError):
+            res1, status, res2 = retrieve("1234.56789",
+                                          3,
+                                          True)

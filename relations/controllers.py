@@ -17,7 +17,8 @@ from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
 from relations.services.create import create, StorageError
-from relations.services.get import from_id, NotFoundError, DBLookUpError
+from relations.services.get import from_id, from_e_print, NotFoundError, \
+    DBLookUpError
 
 Response = Tuple[Dict[str, Any], HTTPStatus, Dict[str, str]]
 
@@ -221,3 +222,46 @@ def suppress(arxiv_id_str: str,
 
     except StorageError as se:
         raise InternalServerError("An error occured in storage") from se
+
+
+def retrieve(arxiv_id_str: str,
+             arxiv_ver: int,
+             active_only: bool) -> Response:
+    """
+    Retrieve relations associated with an e-print.
+
+    Parameters
+    ----------
+    arxiv_id_str: str
+        The arXiv ID of the e-print.
+    arxiv_ver: int
+        The version of the e-print.
+    active_only: bool
+        When it is true, the return value will only include active links.
+
+    Returns
+    -------
+    Dict[str, Any]
+        A collection of relations, whose key is an ID, and whose value is
+        the corresponding relation.
+    HTTPStatus
+        An HTTP status code.
+    Dict[str, str]
+        blank.
+
+    """
+    # get arxiv ID from str
+    arxiv_id: ArXivID = resolve_arxiv_id(arxiv_id_str)
+    try:
+        # retrieve
+        rels: List[Relation] = from_e_print(arxiv_id, arxiv_ver, active_only)
+
+        # encode to response
+        result: Dict[str, Any] = {}
+        for rel in rels:
+            result[str(rel.identifier)] = rel
+        return result, HTTPStatus.OK, {}
+
+    except DBLookUpError as lue:
+        raise InternalServerError("A failure occured in looking up relations") \
+            from lue

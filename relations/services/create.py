@@ -10,8 +10,6 @@ from .model import db, RelationDB
 class StorageError(Exception):
     """Error that happens in strage of data."""
 
-    pass
-
 
 def create(arxiv_id: ArXivID,
            arxiv_ver: int,
@@ -58,7 +56,7 @@ def create(arxiv_id: ArXivID,
                           description=description,
                           added_at=datetime.now(),
                           creator=creator,
-                          supercedes_or_suppresses=None)
+                          supercedes_or_suppresses=relation_id)
     try:
         db.session.add(rel_data)
         db.session.commit()
