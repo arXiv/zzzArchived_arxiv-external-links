@@ -10,7 +10,6 @@ can split this into ``controllers/api.py`` and ``controllers/ui.py``.
 
 from typing import Tuple, Any, Dict, List
 from http import HTTPStatus
-import json
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
@@ -33,15 +32,23 @@ def service_status(params: MultiDict) -> Response:
 
 def relation2dict(rel: Relation) -> Dict[str, Any]:
     """Convert a relation object to a dict."""
-    dic: Dict[str, Any] = {}
+    # dict of an e-print
+    dic_e_print: Dict[str, Any] = {}
+    dic_e_print['arxiv_id'] = str(rel.e_print.arxiv_id)
+    dic_e_print['version'] = rel.e_print.version
 
+    # dict of a resource
+    dic_resource: Dict[str, Any] = {}
+    dic_resource['type'] = rel.resource.resource_type
+    dic_resource['id'] = rel.resource.identifier
+
+    # dict of a relation
+    dic: Dict[str, Any] = {}
     dic['id'] = str(rel.identifier)
     dic['relation_type'] = support_json_default(rel.relation_type)
-    dic['arxiv_id'] = rel.e_print.arxiv_id
-    dic['arxiv_ver'] = rel.e_print.version
-    dic['resource_type'] = rel.resource.resource_type
-    dic['resource_id'] = rel.resource.identifier
-    dic['added_at'] = rel.added_at
+    dic['e_print'] = dic_e_print
+    dic['resource'] = dic_resource
+    dic['added_at'] = support_json_default(rel.added_at)
     dic['description'] = rel.description
     dic['creator'] = rel.creator
     dic['supercedes_or_suppresses'] = rel.supercedes_or_suppresses
