@@ -31,6 +31,24 @@ def service_status(params: MultiDict) -> Response:
     return {'iam': 'ok'}, HTTPStatus.OK, {}
 
 
+def relation2dict(rel: Relation) -> Dict[str, Any]:
+    """Convert a relation object to a dict."""
+    dic: Dict[str, Any] = {}
+
+    dic['id'] = str(rel.identifier)
+    dic['relation_type'] = support_json_default(rel.relation_type)
+    dic['arxiv_id'] = rel.e_print.arxiv_id
+    dic['arxiv_ver'] = rel.e_print.version
+    dic['resource_type'] = rel.resource.resource_type
+    dic['resource_id'] = rel.resource.identifier
+    dic['added_at'] = rel.added_at
+    dic['description'] = rel.description
+    dic['creator'] = rel.creator
+    dic['supercedes_or_suppresses'] = rel.supercedes_or_suppresses
+
+    return dic
+
+
 def create_new(arxiv_id_str: str,
                arxiv_ver: int,
                payload: Dict[str, Any]) -> Response:
@@ -49,9 +67,7 @@ def create_new(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        The newly-created relations, whose key is an ID,
-            and whose value is the corresponding relation in JSON format.
-        Blank if it fails.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
@@ -73,8 +89,7 @@ def create_new(arxiv_id_str: str,
                                payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(rel.identifier): json.dumps(rel, default=support_json_default)}
+        result: Dict[str, Any] = relation2dict(rel)
 
         # return
         return result, HTTPStatus.OK, {}
@@ -107,11 +122,11 @@ def supercede(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        A relation ID as a key and the corresponding relation as its value.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
-        The previous relation ID.
+        A blank dict.
 
     """
     # get arxiv ID from str
@@ -133,12 +148,10 @@ def supercede(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(new_rel.identifier):
-             json.dumps(new_rel, default=support_json_default)}
+        result: Dict[str, Any] = relation2dict(new_rel)
 
         # return
-        return result, HTTPStatus.OK, {"previous": relation_id_str}
+        return result, HTTPStatus.OK, {}
 
     except KeyError as ke:
         raise InternalServerError(f"A value of {str(ke)} not found")
@@ -172,11 +185,11 @@ def suppress(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        A relation ID as a key and the corresponding relation as its value.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
-        The previous relation ID.
+        A blank dict.
 
     """
     # get arxiv ID from str
@@ -198,12 +211,10 @@ def suppress(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(new_rel.identifier):
-             json.dumps(new_rel, default=support_json_default)}
+        result: Dict[str, Any] = relation2dict(new_rel)
 
         # return
-        return result, HTTPStatus.OK, {"previous": relation_id_str}
+        return result, HTTPStatus.OK, {}
 
     except NotFoundError as nfe:
         raise InternalServerError("The previous relation cannot be found") \

@@ -5,7 +5,8 @@ from unittest import TestCase, mock
 from datetime import datetime
 from typing import Any
 from werkzeug.exceptions import InternalServerError
-from relations.controllers import create_new, supercede, suppress
+from relations.controllers import create_new, supercede, suppress, \
+    relation2dict
 from relations.domain import Relation, RelationType, EPrint, Resource, \
     support_json_default
 from relations.services.create import StorageError
@@ -40,9 +41,7 @@ class TestRelationController(TestCase):
         res1, status, res2 = create_new(rel.e_print.arxiv_id,
                                         rel.e_print.version,
                                         payload)
-        self.assertDictEqual(res1,
-                             {rel.identifier: 
-                              json.dumps(rel, default=support_json_default)})
+        self.assertDictEqual(res1, relation2dict(rel))
         self.assertEqual(status, HTTPStatus.OK)
         self.assertDictEqual(res2, {})
 
@@ -140,11 +139,9 @@ class TestRelationController(TestCase):
                                        new_rel.e_print.version,
                                        prev_rel.identifier,
                                        payload)
-        self.assertDictEqual(res1,
-                             {new_rel.identifier: 
-                              json.dumps(new_rel, default=support_json_default)})
+        self.assertDictEqual(res1, relation2dict(new_rel))
         self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(res2, {"previous": prev_rel.identifier})
+        self.assertDictEqual(res2, {})
 
     @mock.patch('relations.controllers.from_id')
     @mock.patch('relations.controllers.create')
@@ -308,11 +305,9 @@ class TestRelationController(TestCase):
                                       new_rel.e_print.version,
                                       prev_rel.identifier,
                                       payload)
-        self.assertDictEqual(res1,
-                             {new_rel.identifier: 
-                              json.dumps(new_rel, default=support_json_default)})
+        self.assertDictEqual(res1, relation2dict(new_rel))
         self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(res2, {"previous": prev_rel.identifier})
+        self.assertDictEqual(res2, {})
 
     @mock.patch('relations.controllers.from_id')
     @mock.patch('relations.controllers.create')
