@@ -17,8 +17,8 @@ from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
 from relations.services.create import create, StorageError
-from relations.services.get import from_id, from_e_print, NotFoundError, \
-    DBLookUpError
+from relations.services.get import from_id, is_active, from_e_print, \
+    NotFoundError, DBLookUpError
 
 Response = Tuple[Dict[str, Any], HTTPStatus, Dict[str, str]]
 
@@ -120,8 +120,9 @@ def supercede(arxiv_id_str: str,
 
     prev_rel_id: RelationID = resolve_relation_id(relation_id_str)
     try:
-        # try get the previous relation
-        from_id(prev_rel_id)
+        # check if the previous relation is active
+        if not is_active(prev_rel_id):
+            raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
         new_rel: Relation = create(arxiv_id,
@@ -192,6 +193,10 @@ def suppress(arxiv_id_str: str,
     try:
         # get the previous relation
         prev_rel: Relation = from_id(prev_rel_id)
+
+        # check if the previous relation is active
+        if not is_active(prev_rel_id):
+            raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
         new_rel: Relation = create(arxiv_id,

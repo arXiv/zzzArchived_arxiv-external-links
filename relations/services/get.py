@@ -50,6 +50,22 @@ def from_id(id: RelationID) -> Relation:
     return relation_from_DB(rel_data)
 
 
+def is_active(relation_id: RelationID) -> bool:
+    """Retrieve an activation record from a relation ID."""
+    # query to DB
+    try:
+        rel_data = db.session.query(ActivationDB) \
+            .filter(ActivationDB.id == int(relation_id)) \
+            .one()
+    except NoResultFound as nrf:
+        raise NotFoundError from nrf
+    except Exception as e:
+        raise DBLookUpError from e
+
+    # return the result
+    return bool(rel_data.active)
+
+
 def from_e_print(arxiv_id: ArXivID,
                  arxiv_ver: int,
                  active_only: bool = True) -> List[Relation]:
