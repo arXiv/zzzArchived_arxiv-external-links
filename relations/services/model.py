@@ -20,7 +20,7 @@ class RelationDB(db.Model):
     description = Column(Text(1024))
     added_at = Column(DateTime)
     creator = Column(String(255), nullable=True)
-    supercedes_or_suppresses = Column(Integer, nullable=True)
+    supercedes_or_suppresses = Column(String(255), nullable=True)
 
 
 class ActivationDB(db.Model):

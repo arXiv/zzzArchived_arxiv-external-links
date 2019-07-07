@@ -15,7 +15,7 @@ from relations.services.get import NotFoundError, DBLookUpError
 class TestRelationController(TestCase):
     """Test the :mod:`relations.controllers.hoge` controller."""
 
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.create')
     def test_create_new_with_success(self, mock_create: Any) -> None:
         """:func:`.create_new` gets a relation."""
         rel = Relation(identifier="123",
@@ -46,7 +46,7 @@ class TestRelationController(TestCase):
         self.assertEqual(status, HTTPStatus.OK)
         self.assertDictEqual(res2, {})
 
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.create')
     def test_create_new_with_fail1(self, mock_create: Any) -> None:
         """:func:`.create_new` fails in storage."""
         rel = Relation(identifier="123",
@@ -73,7 +73,7 @@ class TestRelationController(TestCase):
                                             rel.e_print.version,
                                             payload)
 
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.create')
     def test_create_new_with_fail2(self, mock_create: Any) -> None:
         """:func:`.create_new` fails as payload is insufficient."""
         rel = Relation(identifier="123",
@@ -101,9 +101,9 @@ class TestRelationController(TestCase):
                                             payload)
 
     @mock.patch('relations.controllers.is_active')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.supercede')
     def test_supercede_with_success(self,
-                                    mock_create: Any,
+                                    mock_supercede: Any,
                                     mock_is_active: Any) -> None:
         """:func:`.supercede` gets a relation."""
         prev_rel = Relation(identifier="123",
@@ -127,7 +127,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_supercede.return_value = new_rel
 
         # test
         payload = {
@@ -147,9 +147,9 @@ class TestRelationController(TestCase):
         self.assertDictEqual(res2, {"previous": prev_rel.identifier})
 
     @mock.patch('relations.controllers.is_active')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.supercede')
     def test_supercede_with_fail1(self,
-                                  mock_create: Any,
+                                  mock_supercede: Any,
                                   mock_is_active: Any) -> None:
         """:func:`.supercede` fails in retrieving the old relation."""
         prev_rel = Relation(identifier="123",
@@ -173,7 +173,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_supercede.return_value = new_rel
 
         # test
         payload = {
@@ -189,9 +189,9 @@ class TestRelationController(TestCase):
                                            payload)
 
     @mock.patch('relations.controllers.is_active')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.supercede')
     def test_supercede_with_fail2(self,
-                                  mock_create: Any,
+                                  mock_supercede: Any,
                                   mock_is_active: Any) -> None:
         """:func:`.supercede` fails in storage."""
         prev_rel = Relation(identifier="123",
@@ -215,7 +215,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.side_effect = StorageError
+        mock_supercede.side_effect = StorageError
 
         # test
         payload = {
@@ -231,9 +231,9 @@ class TestRelationController(TestCase):
                                            payload)
 
     @mock.patch('relations.controllers.is_active')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.supercede')
     def test_supercede_with_fail3(self,
-                                  mock_create: Any,
+                                  mock_supercede: Any,
                                   mock_is_active: Any) -> None:
         """:func:`.supercede` fails as the payload is insufficient."""
         prev_rel = Relation(identifier="123",
@@ -257,7 +257,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_supercede.return_value = new_rel
 
         # test
         payload = {
@@ -273,9 +273,9 @@ class TestRelationController(TestCase):
                                            payload)
 
     @mock.patch('relations.controllers.is_active')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.supercede')
     def test_supercede_with_fail4(self,
-                                  mock_create: Any,
+                                  mock_supercede: Any,
                                   mock_is_active: Any) -> None:
         """:func:`.supercede` fails in looking up the old relation."""
         prev_rel = Relation(identifier="123",
@@ -299,7 +299,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_supercede.return_value = new_rel
 
         # test
         payload = {
@@ -316,12 +316,12 @@ class TestRelationController(TestCase):
 
     @mock.patch('relations.controllers.is_active')
     @mock.patch('relations.controllers.from_id')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.suppress')
     def test_suppress_with_success(self,
-                                   mock_create: Any,
+                                   mock_suppress: Any,
                                    mock_from_id: Any,
                                    mock_is_active: Any) -> None: 
-        """:func:`.suppress` gets a relation."""
+        """:func:`.create.suppress` gets a relation."""
         prev_rel = Relation(identifier="123",
                             relation_type=RelationType.ADD,
                             e_print=EPrint(arxiv_id="1234.56789",
@@ -342,7 +342,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_suppress.return_value = new_rel
 
         # test
         payload = {
@@ -361,9 +361,9 @@ class TestRelationController(TestCase):
 
     @mock.patch('relations.controllers.is_active')
     @mock.patch('relations.controllers.from_id')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.suppress')
     def test_suppress_with_fail1(self,
-                                 mock_create: Any,
+                                 mock_suppress: Any,
                                  mock_from_id: Any,
                                  mock_is_active: Any) -> None:
         """:func:`.suppress` fails to find the previous relation."""
@@ -387,7 +387,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_suppress.return_value = new_rel
 
         # test
         payload = {
@@ -402,9 +402,9 @@ class TestRelationController(TestCase):
 
     @mock.patch('relations.controllers.is_active')
     @mock.patch('relations.controllers.from_id')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.suppress')
     def test_suppress_with_fail2(self,
-                                 mock_create: Any,
+                                 mock_suppress: Any,
                                  mock_from_id: Any,
                                  mock_is_active: Any) -> None:
         """:func:`.suppress` fails in storage."""
@@ -428,7 +428,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.side_effect = StorageError
+        mock_suppress.side_effect = StorageError
 
         # test
         payload = {
@@ -443,9 +443,9 @@ class TestRelationController(TestCase):
 
     @mock.patch('relations.controllers.is_active')
     @mock.patch('relations.controllers.from_id')
-    @mock.patch('relations.controllers.create')
+    @mock.patch('relations.controllers.create.suppress')
     def test_suppress_with_fail3(self,
-                                 mock_create: Any,
+                                 mock_suppress: Any,
                                  mock_from_id: Any,
                                  mock_is_active: Any) -> None:
         """:func:`.suppress` fails in looking up the previous relation."""
@@ -469,7 +469,7 @@ class TestRelationController(TestCase):
                            added_at=datetime(2019, 7, 3),
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
-        mock_create.return_value = new_rel
+        mock_suppress.return_value = new_rel
 
         # test
         payload = {
@@ -515,3 +515,62 @@ class TestRelationController(TestCase):
             res1, status, res2 = retrieve("1234.56789",
                                           3,
                                           True)
+
+
+class Testntegration(TestCase):
+    """:mod:`.` can create and retrieve a new relation."""
+
+    def setUp(self) -> None:
+        """Initialize an in-memory SQLite database."""
+        from relations.services import create
+        self.create = create
+        app = mock.MagicMock(
+            config={
+                'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+                'SQLALCHEMY_TRACK_MODIFICATIONS': False
+            }, extensions={}, root_path=''
+        )
+        self.create.db.init_app(app)    # type: ignore
+        self.create.db.app = app    # type: ignore
+        self.create.db.create_all()  # type: ignore
+
+    def tearDown(self) -> None:
+        """Clear the database and tear down all tables."""
+        self.create.db.session.remove()  # type: ignore
+        self.create.db.drop_all()    # type: ignore
+
+    def test_create_and_retrieve(self) -> None:
+        """create_new and then retrieve."""
+        rel = Relation(identifier="123",
+                       relation_type=RelationType.ADD,
+                       e_print=EPrint(arxiv_id="1234.56789",
+                                      version=3),
+                       resource=Resource(resource_type="DOI",
+                                         identifier="10.1023/hoge.2013.7.24"),
+                       description="test",
+                       added_at=datetime(2019, 7, 1),
+                       creator="tester",
+                       supercedes_or_suppresses=None)
+
+        # create
+        payload = {
+            'resource_type': rel.resource.resource_type,
+            'resource_id': rel.resource.identifier,
+            'description': rel.description,
+            'creator': "tester"
+        }
+        res1, status1, _ = create_new(rel.e_print.arxiv_id,
+                                      rel.e_print.version,
+                                      payload)
+        self.assertEqual(status1, HTTPStatus.OK)
+
+        # retrieve
+        res2, status2, _ = retrieve(rel.e_print.arxiv_id,
+                                    rel.e_print.version,
+                                    True)
+        self.assertEqual(status2, HTTPStatus.OK)
+
+        # compare
+        self.assertEqual(len(res2), 1)
+        rel_created = list(res1.keys())[0]
+        self.assertIn(rel_created, res2.keys())

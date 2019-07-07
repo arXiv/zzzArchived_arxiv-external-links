@@ -11,12 +11,12 @@ can split this into ``controllers/api.py`` and ``controllers/ui.py``.
 from typing import Tuple, Any, Dict, List
 from http import HTTPStatus
 import json
-
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
-from relations.services.create import create, StorageError
+from relations.services import create
+from relations.services.create import StorageError
 from relations.services.get import from_id, is_active, from_e_print, \
     NotFoundError, DBLookUpError
 
@@ -64,14 +64,12 @@ def create_new(arxiv_id_str: str,
 
     # get relation
     try:
-        rel: Relation = create(arxiv_id,
-                               arxiv_ver,
-                               None,
-                               RelationType.ADD,
-                               payload['resource_type'],
-                               payload['resource_id'],
-                               payload.get('description', ''),
-                               payload.get('creator'))
+        rel: Relation = create.create(arxiv_id,
+                                      arxiv_ver,
+                                      payload['resource_type'],
+                                      payload['resource_id'],
+                                      payload.get('description', ''),
+                                      payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \
@@ -125,14 +123,13 @@ def supercede(arxiv_id_str: str,
             raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
-        new_rel: Relation = create(arxiv_id,
-                                   arxiv_ver,
-                                   prev_rel_id,
-                                   RelationType.EDIT,
-                                   payload['resource_type'],
-                                   payload['resource_id'],
-                                   payload.get('description', ''),
-                                   payload.get('creator'))
+        new_rel: Relation = create.supercede(arxiv_id,
+                                             arxiv_ver,
+                                             prev_rel_id,
+                                             payload['resource_type'],
+                                             payload['resource_id'],
+                                             payload.get('description', ''),
+                                             payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \
@@ -199,14 +196,11 @@ def suppress(arxiv_id_str: str,
             raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
-        new_rel: Relation = create(arxiv_id,
-                                   arxiv_ver,
-                                   prev_rel_id,
-                                   RelationType.SUPPRESS,
-                                   prev_rel.resource.resource_type,
-                                   prev_rel.resource.identifier,
-                                   payload.get('escription', ''),
-                                   payload.get('creator'))
+        new_rel: Relation = create.suppress(arxiv_id,
+                                            arxiv_ver,
+                                            prev_rel_id,
+                                            payload.get('description', ''),
+                                            payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = \

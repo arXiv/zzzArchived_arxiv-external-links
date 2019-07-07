@@ -24,6 +24,22 @@ class TestRelationCreator(TestCase):
         self.create.db.app = app    # type: ignore
         self.create.db.create_all()  # type: ignore
 
+        self.prev_data = dict(arxiv_id=resolve_arxiv_id("1234.78901"),  # type: ignore
+                              arxiv_ver=2,
+                              supercedes_or_suppresses=None,
+                              rel_type=RelationType.ADD,
+                              resource_type="DOI",
+                              resource_id="10.1023/hage.2018.7.11",
+                              description="test",
+                              creator="tester",
+                              added_at=datetime.now())
+        self.relDB = self.create.RelationDB(**self.prev_data)  # type: ignore
+        self.create.db.session.add(self.relDB)    # type: ignore
+        self.active = dict(id=self.relDB.id, active=True)  # type: ignore
+        self.actDB = self.create.ActivationDB(**self.active)  # type: ignore
+        self.create.db.session.add(self.actDB)  # type: ignore
+        self.create.db.session.commit()     # type: ignore
+
     def tearDown(self) -> None:
         """Clear the database and tear down all tables."""
         self.create.db.session.remove()  # type: ignore
@@ -33,8 +49,6 @@ class TestRelationCreator(TestCase):
         """Add new relation."""
         rel = self.create.create(resolve_arxiv_id("1234.56789"),  # type: ignore
                                  1,
-                                 None,
-                                 RelationType.ADD,
                                  "DOI",
                                  "10.1023/hoge.2013.7.24",
                                  "test",
@@ -47,16 +61,123 @@ class TestRelationCreator(TestCase):
         query = session.query(self.create.RelationDB)  # type: ignore
         rel_db = query.get(rel.identifier)  # type: ignore
 
-        self.assertEqual(rel_db.rel_type, rel.relation_type)
-        self.assertEqual(rel_db.arxiv_id, rel.e_print.arxiv_id)
-        self.assertEqual(rel_db.arxiv_ver, rel.e_print.version)
-        self.assertEqual(rel_db.resource_type, rel.resource.resource_type)
-        self.assertEqual(rel_db.resource_id, rel.resource.identifier)
-        self.assertEqual(rel_db.description, rel.description)
+        # check the created relation is valid
+        self.assertEqual(rel.relation_type, RelationType.ADD)
+        self.assertEqual(rel.e_print.arxiv_id, "1234.56789")
+        self.assertEqual(rel.e_print.version, 1)
+        self.assertEqual(rel.resource.resource_type, "DOI")
+        self.assertEqual(rel.resource.identifier, "10.1023/hoge.2013.7.24")
+        self.assertEqual(rel.description, "test")
+        self.assertEqual(rel.creator, "tester")
+        self.assertEqual(rel.supercedes_or_suppresses, None)
+
+        # check the record is cetainly created on DB
+        self.assertEqual(rel_db.rel_type, RelationType.ADD)
+        self.assertEqual(rel_db.arxiv_id, "1234.56789")
+        self.assertEqual(rel_db.arxiv_ver, 1)
+        self.assertEqual(rel_db.resource_type, "DOI")
+        self.assertEqual(rel_db.resource_id, "10.1023/hoge.2013.7.24")
+        self.assertEqual(rel_db.description, "test")
         self.assertEqual(rel_db.added_at, rel.added_at)
-        self.assertEqual(rel_db.creator, rel.creator)
-        self.assertEqual(rel_db.supercedes_or_suppresses,
-                         rel.supercedes_or_suppresses)
+        self.assertEqual(rel_db.creator, "tester")
+        self.assertEqual(rel_db.supercedes_or_suppresses, None)
+
+        # assert it is active
+        query2 = session.query(self.create.ActivationDB)  # type: ignore
+        act_db = query2.get(rel.identifier)  # type: ignore
+        self.assertEqual(act_db.active, True)
+
+    def test_supercede(self) -> None:
+        """Add new relation that supercedes another."""
+        rel = self.create.supercede(resolve_arxiv_id("1234.78901"),  # type: ignore
+                                    2,
+                                    str(self.relDB.id),
+                                    "DOI",
+                                    "10.1023/hage.2018.7.13",
+                                    "test",
+                                    "tester")
+        self.assertGreater(rel.identifier,
+                           0,
+                           "Relation.identifier is updated with pk id")
+
+        session = self.create.db.session   # type: ignore
+        query = session.query(self.create.RelationDB)  # type: ignore
+        rel_db = query.get(rel.identifier)  # type: ignore
+
+        # check the created relation is valid
+        self.assertEqual(rel.relation_type, RelationType.EDIT)
+        self.assertEqual(rel.e_print.arxiv_id, "1234.78901")
+        self.assertEqual(rel.e_print.version, 2)
+        self.assertEqual(rel.resource.resource_type, "DOI")
+        self.assertEqual(rel.resource.identifier, "10.1023/hage.2018.7.13")
+        self.assertEqual(rel.description, "test")
+        self.assertEqual(rel.creator, "tester")
+        self.assertEqual(rel.supercedes_or_suppresses, str(self.relDB.id))
+
+        # check the record is cetainly created on DB
+        self.assertEqual(rel_db.rel_type, RelationType.EDIT)
+        self.assertEqual(rel_db.arxiv_id, "1234.78901")
+        self.assertEqual(rel_db.arxiv_ver, 2)
+        self.assertEqual(rel_db.resource_type, "DOI")
+        self.assertEqual(rel_db.resource_id, "10.1023/hage.2018.7.13")
+        self.assertEqual(rel_db.description, "test")
+        self.assertEqual(rel_db.added_at, rel.added_at)
+        self.assertEqual(rel_db.creator, "tester")
+        self.assertEqual(rel_db.supercedes_or_suppresses, str(self.relDB.id))
+
+        # assert it is active
+        query2 = session.query(self.create.ActivationDB)  # type: ignore
+        act_db = query2.get(rel.identifier)  # type: ignore
+        self.assertEqual(act_db.active, True)
+
+        # and the previous one is inactive
+        act_db = query2.get(int(rel.supercedes_or_suppresses))  # type: ignore
+        self.assertEqual(act_db.active, False)
+
+    def test_suppress(self) -> None:
+        """Add new relation that suppresses another."""
+        rel = self.create.suppress(resolve_arxiv_id("1234.78901"),  # type: ignore
+                                   2,
+                                   str(self.relDB.id),
+                                   "test",
+                                   "tester")
+        self.assertGreater(rel.identifier,
+                           0,
+                           "Relation.identifier is updated with pk id")
+
+        session = self.create.db.session   # type: ignore
+        query = session.query(self.create.RelationDB)  # type: ignore
+        rel_db = query.get(rel.identifier)  # type: ignore
+
+        # check the created relation is valid
+        self.assertEqual(rel.relation_type, RelationType.SUPPRESS)
+        self.assertEqual(rel.e_print.arxiv_id, "1234.78901")
+        self.assertEqual(rel.e_print.version, 2)
+        self.assertEqual(rel.resource.resource_type, "DOI")
+        self.assertEqual(rel.resource.identifier, "10.1023/hage.2018.7.11")
+        self.assertEqual(rel.description, "test")
+        self.assertEqual(rel.creator, "tester")
+        self.assertEqual(rel.supercedes_or_suppresses, str(self.relDB.id))
+
+        # check the record is cetainly created on DB
+        self.assertEqual(rel_db.rel_type, RelationType.SUPPRESS)
+        self.assertEqual(rel_db.arxiv_id, "1234.78901")
+        self.assertEqual(rel_db.arxiv_ver, 2)
+        self.assertEqual(rel_db.resource_type, "DOI")
+        self.assertEqual(rel_db.resource_id, "10.1023/hage.2018.7.11")
+        self.assertEqual(rel_db.description, "test")
+        self.assertEqual(rel_db.added_at, rel.added_at)
+        self.assertEqual(rel_db.creator, "tester")
+        self.assertEqual(rel_db.supercedes_or_suppresses, str(self.relDB.id))
+
+        # assert it is active
+        query2 = session.query(self.create.ActivationDB)  # type: ignore
+        act_db = query2.get(rel.identifier)  # type: ignore
+        self.assertEqual(act_db.active, True)
+
+        # and the previous one is inactive
+        act_db = query2.get(int(rel.supercedes_or_suppresses))  # type: ignore
+        self.assertEqual(act_db.active, False)
 
 
 class TestRelationGetter(TestCase):
