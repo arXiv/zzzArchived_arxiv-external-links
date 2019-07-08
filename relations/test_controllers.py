@@ -9,7 +9,7 @@ from relations.controllers import create_new, supercede, suppress
 from relations.domain import Relation, RelationType, EPrint, Resource, \
     support_json_default
 from relations.services.create import StorageError
-from relations.services.get import NotFoundError
+from relations.services.get import NotFoundError, DBLookUpError
 
 
 class TestRelationController(TestCase):
@@ -274,6 +274,49 @@ class TestRelationController(TestCase):
 
     @mock.patch('relations.controllers.from_id')
     @mock.patch('relations.controllers.create')
+    def test_supercede_with_fail4(self,
+                                  mock_create: Any,
+                                  mock_from_id: Any) -> None:
+        """:func:`.supercede` fails in looking up the old relation."""
+        prev_rel = Relation(identifier="123",
+                            relation_type=RelationType.ADD,
+                            e_print=EPrint(arxiv_id="1234.56789",
+                                           version=3),
+                            resource=Resource(resource_type="DOI",
+                                              identifier="10.1023/hoge.2013.7.24"),
+                            description="prev",
+                            added_at=datetime(2019, 7, 1),
+                            creator="old tester",
+                            supercedes_or_suppresses=None)
+        mock_from_id.side_effect = DBLookUpError
+        new_rel = Relation(identifier="158",
+                           relation_type=RelationType.EDIT,
+                           e_print=EPrint(arxiv_id="1234.56789",
+                                          version=3),
+                           resource=Resource(resource_type="DOI",
+                                             identifier="10.1023/hoge.2018.6.11"),
+                           description="new",
+                           added_at=datetime(2019, 7, 3),
+                           creator="new tester",
+                           supercedes_or_suppresses=prev_rel.identifier)
+        mock_create.return_value = new_rel
+
+        # test
+        payload = {
+            'resource_type': new_rel.resource.resource_type,
+            'resource_id': new_rel.resource.identifier,
+            'description': new_rel.description,
+            'creator': "new tester"
+        }
+        with self.assertRaises(InternalServerError):
+            res1, status, res2 = supercede(new_rel.e_print.arxiv_id,
+                                           new_rel.e_print.version,
+                                           prev_rel.identifier,
+                                           payload)
+
+
+    @mock.patch('relations.controllers.from_id')
+    @mock.patch('relations.controllers.create')
     def test_suppress_with_success(self,
                                    mock_create: Any,
                                    mock_from_id: Any) -> None:
@@ -378,6 +421,44 @@ class TestRelationController(TestCase):
                            creator="new tester",
                            supercedes_or_suppresses=prev_rel.identifier)
         mock_create.side_effect = StorageError
+
+        # test
+        payload = {
+            'description': new_rel.description,
+            'creator': "new tester"
+        }
+        with self.assertRaises(InternalServerError):
+            res1, status, res2 = suppress(new_rel.e_print.arxiv_id,
+                                          new_rel.e_print.version,
+                                          prev_rel.identifier,
+                                          payload)
+
+    @mock.patch('relations.controllers.from_id')
+    @mock.patch('relations.controllers.create')
+    def test_suppress_with_fail3(self,
+                                 mock_create: Any,
+                                 mock_from_id: Any) -> None:
+        """:func:`.suppress` fails in looking up the previous relation."""
+        prev_rel = Relation(identifier="123",
+                            relation_type=RelationType.ADD,
+                            e_print=EPrint(arxiv_id="1234.56789",
+                                           version=3),
+                            resource=Resource(resource_type="DOI",
+                                              identifier="10.1023/hoge.2013.7.24"),
+                            description="prev",
+                            added_at=datetime(2019, 7, 1),
+                            creator="old tester",
+                            supercedes_or_suppresses=None)
+        mock_from_id.side_effect = DBLookUpError
+        new_rel = Relation(identifier="158",
+                           relation_type=RelationType.SUPPRESS,
+                           e_print=prev_rel.e_print,
+                           resource=prev_rel.resource,
+                           description="new",
+                           added_at=datetime(2019, 7, 3),
+                           creator="new tester",
+                           supercedes_or_suppresses=prev_rel.identifier)
+        mock_create.return_value = new_rel
 
         # test
         payload = {

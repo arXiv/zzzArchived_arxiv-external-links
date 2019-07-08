@@ -17,7 +17,7 @@ from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
 from relations.services.create import create, StorageError
-from relations.services.get import from_id, NotFoundError
+from relations.services.get import from_id, NotFoundError, DBLookUpError
 
 Response = Tuple[Dict[str, Any], HTTPStatus, Dict[str, str]]
 
@@ -147,6 +147,11 @@ def supercede(arxiv_id_str: str,
         raise InternalServerError("The previous relation cannot be found") \
             from nfe
 
+    except DBLookUpError as lue:
+        raise InternalServerError("A failure occured in "
+                                 "looking up the previous relation") \
+            from lue
+
     except StorageError as se:
         raise InternalServerError("An error occured in storage") from se
 
@@ -208,6 +213,11 @@ def suppress(arxiv_id_str: str,
     except NotFoundError as nfe:
         raise InternalServerError("The previous relation cannot be found") \
             from nfe
+
+    except DBLookUpError as lue:
+        raise InternalServerError("A failure occured in "
+                                  "looking up the previous relation") \
+            from lue
 
     except StorageError as se:
         raise InternalServerError("An error occured in storage") from se

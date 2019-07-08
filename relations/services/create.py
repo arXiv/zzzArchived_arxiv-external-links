@@ -1,7 +1,10 @@
 """Service for new relation creation."""
 
-from relations.domain import ArXivID, Relation, RelationID, RelationType
+from datetime import datetime
 from typing import Optional
+from relations.domain import ArXivID, EPrint, Relation, RelationID, \
+    RelationType, Resource
+from .model import db, RelationDB
 
 
 class StorageError(Exception):
@@ -46,4 +49,38 @@ def create(arxiv_id: ArXivID,
         The newly-created relation.
 
     """
-    pass  # not implemented yet
+    # store it to DB
+    rel_data = RelationDB(rel_type=relation_type,
+                          arxiv_id=str(arxiv_id),
+                          arxiv_ver=arxiv_ver,
+                          resource_type=resource_type,
+                          resource_id=resource_id,
+                          description=description,
+                          added_at=datetime.now(),
+                          creator=creator,
+                          supercedes_or_suppresses=None)
+    try:
+        db.session.add(rel_data)
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise StorageError from e
+
+    # return the result
+    return Relation(
+        identifier=rel_data.id,
+        relation_type=relation_type,
+        e_print=EPrint(
+            arxiv_id=str(arxiv_id),
+            version=arxiv_ver
+        ),
+        resource=Resource(
+            resource_type=resource_type,
+            identifier=resource_id
+        ),
+        description=description,
+        added_at=rel_data.added_at,
+        creator=creator,
+        supercedes_or_suppresses=None
+    )
