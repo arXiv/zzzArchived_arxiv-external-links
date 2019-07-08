@@ -30,32 +30,6 @@ def service_status(params: MultiDict) -> Response:
     return {'iam': 'ok'}, HTTPStatus.OK, {}
 
 
-def relation2dict(rel: Relation) -> Dict[str, Any]:
-    """Convert a relation object to a dict."""
-    # dict of an e-print
-    dic_e_print: Dict[str, Any] = {}
-    dic_e_print['arxiv_id'] = str(rel.e_print.arxiv_id)
-    dic_e_print['version'] = rel.e_print.version
-
-    # dict of a resource
-    dic_resource: Dict[str, Any] = {}
-    dic_resource['type'] = rel.resource.resource_type
-    dic_resource['id'] = rel.resource.identifier
-
-    # dict of a relation
-    dic: Dict[str, Any] = {}
-    dic['id'] = str(rel.identifier)
-    dic['relation_type'] = support_json_default(rel.relation_type)
-    dic['e_print'] = dic_e_print
-    dic['resource'] = dic_resource
-    dic['added_at'] = support_json_default(rel.added_at)
-    dic['description'] = rel.description
-    dic['creator'] = rel.creator
-    dic['supercedes_or_suppresses'] = rel.supercedes_or_suppresses
-
-    return dic
-
-
 def create_new(arxiv_id_str: str,
                arxiv_ver: int,
                payload: Dict[str, Any]) -> Response:
@@ -96,7 +70,7 @@ def create_new(arxiv_id_str: str,
                                payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = relation2dict(rel)
+        result: Dict[str, Any] = rel._asdict()
 
         # return
         return result, HTTPStatus.OK, {}
@@ -155,7 +129,7 @@ def supercede(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = relation2dict(new_rel)
+        result: Dict[str, Any] = new_rel._asdict()
 
         # return
         return result, HTTPStatus.OK, {}
@@ -218,7 +192,7 @@ def suppress(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = relation2dict(new_rel)
+        result: Dict[str, Any] = new_rel._asdict()
 
         # return
         return result, HTTPStatus.OK, {}
