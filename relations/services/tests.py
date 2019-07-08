@@ -59,7 +59,7 @@ class TestRelationCreator(TestCase):
                          rel.supercedes_or_suppresses)
 
 
-class TestThingGetter(TestCase):
+class TestRelationGetter(TestCase):
     """:mod:`.get` retrieves relations."""
 
     def setUp(self) -> None:
