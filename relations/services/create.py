@@ -5,6 +5,7 @@ from typing import Optional
 from relations.domain import ArXivID, EPrint, Relation, RelationID, \
     RelationType, Resource
 from .model import db, RelationDB, ActivationDB
+from .util import relation_from_DB
 
 
 class StorageError(Exception):
@@ -63,22 +64,7 @@ def create(arxiv_id: ArXivID,
         raise StorageError from e
 
     # return the result
-    return Relation(
-        identifier=rel_data.id,
-        relation_type=RelationType.ADD,
-        e_print=EPrint(
-            arxiv_id=str(arxiv_id),
-            version=arxiv_ver
-        ),
-        resource=Resource(
-            resource_type=resource_type,
-            identifier=resource_id
-        ),
-        description=description,
-        added_at=rel_data.added_at,
-        creator=creator,
-        supercedes_or_suppresses=None
-    )
+    return relation_from_DB(rel_data)
 
 
 def supercede(arxiv_id: ArXivID,
@@ -143,22 +129,7 @@ def supercede(arxiv_id: ArXivID,
         raise StorageError from e
 
     # return the result
-    return Relation(
-        identifier=rel_data.id,
-        relation_type=RelationType.EDIT,
-        e_print=EPrint(
-            arxiv_id=str(arxiv_id),
-            version=arxiv_ver
-        ),
-        resource=Resource(
-            resource_type=resource_type,
-            identifier=resource_id
-        ),
-        description=description,
-        added_at=rel_data.added_at,
-        creator=creator,
-        supercedes_or_suppresses=rel_data.supercedes_or_suppresses
-    )
+    return relation_from_DB(rel_data)
 
 
 def suppress(arxiv_id: ArXivID,
@@ -221,21 +192,5 @@ def suppress(arxiv_id: ArXivID,
         db.session.rollback()
         raise StorageError from e
 
-
     # return the result
-    return Relation(
-        identifier=rel_data.id,
-        relation_type=RelationType(rel_data.rel_type),
-        e_print=EPrint(
-            arxiv_id=str(arxiv_id),
-            version=arxiv_ver
-        ),
-        resource=Resource(
-            resource_type=rel_data.resource_type,
-            identifier=rel_data.resource_id
-        ),
-        description=description,
-        added_at=rel_data.added_at,
-        creator=creator,
-        supercedes_or_suppresses=str(relation_id)
-    )
+    return relation_from_DB(rel_data)

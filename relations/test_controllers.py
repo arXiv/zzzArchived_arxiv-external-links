@@ -495,7 +495,7 @@ class TestRelationController(TestCase):
         res1, status, res2 = retrieve(rel.e_print.arxiv_id,
                                       rel.e_print.version,
                                       True)
-        self.assertDictEqual(res1, {rel.identifier: rel})
+        self.assertDictEqual(res1, {rel.identifier: rel._asdict()})
         self.assertEqual(status, HTTPStatus.OK)
         self.assertDictEqual(res2, {})
 
@@ -566,5 +566,4 @@ class Testntegration(TestCase):
 
         # compare
         self.assertEqual(len(res2), 1)
-        rel_created = list(res1.keys())[0]
-        self.assertIn(rel_created, res2.keys())
+        self.assertIn(res1, res2.values())

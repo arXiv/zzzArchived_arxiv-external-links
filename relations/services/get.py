@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from relations.domain import EPrint, Resource, Relation, RelationID, \
     ArXivID, RelationType
 from .model import db, RelationDB, ActivationDB
+from .util import relation_from_DB
 
 
 class NotFoundError(Exception):
@@ -12,26 +13,6 @@ class NotFoundError(Exception):
 
 class DBLookUpError(Exception):
     """Error that happens in lookup."""
-
-
-def relation_from_DB(rel_data: RelationDB) -> Relation:
-    """Retrieve a relation from a result of DB query."""
-    return Relation(
-        identifier=rel_data.id,
-        relation_type=RelationType(rel_data.rel_type),
-        e_print=EPrint(
-            arxiv_id=rel_data.arxiv_id,
-            version=rel_data.arxiv_ver
-        ),
-        resource=Resource(
-            resource_type=rel_data.resource_type,
-            identifier=rel_data.resource_id
-        ),
-        description=rel_data.description,
-        added_at=rel_data.added_at,
-        creator=rel_data.creator,
-        supercedes_or_suppresses=rel_data.supercedes_or_suppresses
-    )
 
 
 def from_id(id: RelationID) -> Relation:

@@ -53,9 +53,6 @@ class TestRelationCreator(TestCase):
                                  "10.1023/hoge.2013.7.24",
                                  "test",
                                  "tester")
-        self.assertGreater(rel.identifier,
-                           0,
-                           "Relation.identifier is updated with pk id")
 
         session = self.create.db.session   # type: ignore
         query = session.query(self.create.RelationDB)  # type: ignore
@@ -96,9 +93,6 @@ class TestRelationCreator(TestCase):
                                     "10.1023/hage.2018.7.13",
                                     "test",
                                     "tester")
-        self.assertGreater(rel.identifier,
-                           0,
-                           "Relation.identifier is updated with pk id")
 
         session = self.create.db.session   # type: ignore
         query = session.query(self.create.RelationDB)  # type: ignore
@@ -141,9 +135,6 @@ class TestRelationCreator(TestCase):
                                    str(self.relDB.id),
                                    "test",
                                    "tester")
-        self.assertGreater(rel.identifier,
-                           0,
-                           "Relation.identifier is updated with pk id")
 
         session = self.create.db.session   # type: ignore
         query = session.query(self.create.RelationDB)  # type: ignore
@@ -248,7 +239,7 @@ class TestRelationGetter(TestCase):
         """When the relation exists, returns a :class:`.Relation`."""
         rel = self.get.from_id(1)  # type: ignore
         self.assertIsInstance(rel, Relation)
-        self.assertEqual(rel.identifier, 1)
+        self.assertEqual(rel.identifier, '1')
         self.assertEqual(rel.e_print.arxiv_id, self.data[0]['arxiv_id'])
         self.assertEqual(rel.e_print.version, self.data[0]['arxiv_ver'])
         self.assertEqual(rel.relation_type, self.data[0]['rel_type'])

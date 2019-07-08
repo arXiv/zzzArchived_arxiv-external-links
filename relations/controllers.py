@@ -250,7 +250,7 @@ def retrieve(arxiv_id_str: str,
         # encode to response
         result: Dict[str, Any] = {}
         for rel in rels:
-            result[str(rel.identifier)] = rel
+            result[str(rel.identifier)] = rel._asdict()
         return result, HTTPStatus.OK, {}
 
     except DBLookUpError as lue:
