@@ -149,7 +149,7 @@ def supercede(arxiv_id_str: str,
 
     except DBLookUpError as lue:
         raise InternalServerError("A failure occured in "
-                                  + "looking up the previous relation") \
+                                 "looking up the previous relation") \
             from lue
 
     except StorageError as se:
