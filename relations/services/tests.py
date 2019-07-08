@@ -113,7 +113,7 @@ class TestRelationGetter(TestCase):
                          self.data['supercedes_or_suppresses'])
 
     def test_get_a_relation_that_doesnt_exist(self) -> None:
-        """When the thing doesn't exist, returns None."""
+        """When the relation doesn't exist, raises NotFoundError."""
         with self.assertRaises(self.get.NotFoundError):  # type: ignore
             self.get.from_id(2)  # type: ignore
 
