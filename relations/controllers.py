@@ -10,7 +10,6 @@ can split this into ``controllers/api.py`` and ``controllers/ui.py``.
 
 from typing import Tuple, Any, Dict, List
 from http import HTTPStatus
-import json
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
@@ -49,9 +48,7 @@ def create_new(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        The newly-created relations, whose key is an ID,
-            and whose value is the corresponding relation in JSON format.
-        Blank if it fails.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
@@ -73,8 +70,7 @@ def create_new(arxiv_id_str: str,
                                payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(rel.identifier): json.dumps(rel, default=support_json_default)}
+        result: Dict[str, Any] = rel._asdict()
 
         # return
         return result, HTTPStatus.OK, {}
@@ -107,11 +103,11 @@ def supercede(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        A relation ID as a key and the corresponding relation as its value.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
-        The previous relation ID.
+        A blank dict.
 
     """
     # get arxiv ID from str
@@ -133,12 +129,10 @@ def supercede(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(new_rel.identifier):
-             json.dumps(new_rel, default=support_json_default)}
+        result: Dict[str, Any] = new_rel._asdict()
 
         # return
-        return result, HTTPStatus.OK, {"previous": relation_id_str}
+        return result, HTTPStatus.OK, {}
 
     except KeyError as ke:
         raise InternalServerError(f"A value of {str(ke)} not found")
@@ -177,11 +171,11 @@ def suppress(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        A relation ID as a key and the corresponding relation as its value.
+        The newly-created relation.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
-        The previous relation ID.
+        A blank dict.
 
     """
     # get arxiv ID from str
@@ -203,12 +197,10 @@ def suppress(arxiv_id_str: str,
                                    payload.get('creator'))
 
         # create the result value
-        result: Dict[str, Any] = \
-            {str(new_rel.identifier):
-             json.dumps(new_rel, default=support_json_default)}
+        result: Dict[str, Any] = new_rel._asdict()
 
         # return
-        return result, HTTPStatus.OK, {"previous": relation_id_str}
+        return result, HTTPStatus.OK, {}
 
     except NotFoundError as nfe:
         raise InternalServerError("The previous relation cannot be found") \
