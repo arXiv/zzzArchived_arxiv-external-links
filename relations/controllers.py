@@ -213,3 +213,49 @@ def suppress(arxiv_id_str: str,
 
     except StorageError as se:
         raise InternalServerError("An error occured in storage") from se
+
+def get_relations(arxiv_id_str: str, arxiv_ver: int) -> Response:
+    """
+    Return all active (not suppressed or superseded) relations for an e-print.
+
+    Parameters
+    ----------
+    arxiv_id_str: str
+        The arXiv ID of the e-print.
+    arxiv_ver: int
+        The version of the e-print.
+
+    Returns
+    -------
+    Dict[Any, Any]
+        The active relations.
+    HTTPStatus
+        An HTTP status code.
+    Dict[str, str]
+        A blank dict.
+
+    """
+    pass
+
+def get_events(arxiv_id_str: str, arxiv_ver: int) -> Response:
+    """
+    Return all relation events for an e-print. (including suppressed and superseded)
+
+    Parameters
+    ----------
+    arxiv_id_str: str
+        The arXiv ID of the e-print.
+    arxiv_ver: int
+        The version of the e-print.
+
+    Returns
+    -------
+    Dict[Any, Any]
+        The active relations.
+    HTTPStatus
+        An HTTP status code.
+    Dict[str, str]
+        A blank dict.
+
+    """
+    pass
