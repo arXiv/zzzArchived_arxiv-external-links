@@ -113,7 +113,7 @@ class TestExternalAPIRoutes(TestCase):
         """Endpoint /api/<string:arxiv_id_str>v<int:arxiv_ver>/log returns JSON about all events belonging to an id."""
 
         return_data = {'event1':{'description':''},'event1':{'description':''}}
-        mock_get_relations.return_value = return_data, HTTPStatus.OK, {}
+        mock_get_events.return_value = return_data, HTTPStatus.OK, {}
         token = generate_token('1234', 'foo@user.com', 'foouser',
                                scope=[])
         response = self.client.get('/api/TESTv1/log',headers={'Authorization':token})
