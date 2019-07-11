@@ -51,7 +51,7 @@ def suppress(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Respons
 
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>', methods=['GET'])
 def get_relations(arxiv_id_str: str, arxiv_ver: int) -> Response:
-    """get all active (not suppressed or superseded) relations for an e-print"""
+    """Get all active (not suppressed or superseded) relations for an e-print."""
     response_data, status_code, headers = controllers.retrieve(arxiv_id_str, arxiv_ver, active_only=True)
     response: Response = jsonify(response_data)
     response.status_code = status_code
