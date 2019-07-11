@@ -33,7 +33,7 @@ def create_new(arxiv_id_str: str, arxiv_ver: int) -> Response:
 
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/relations/<string:relation_id_str>', methods=['PUT'])
 def supercede(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Response:
-    """create a new relation for an e-print which supersedes an existing relation"""
+    """Create a new relation for an e-print which supersedes an existing relation."""
     response_data, status_code, headers = controllers.supercede(arxiv_id_str, arxiv_ver, relation_id_str, request.data)
     response: Response = jsonify(response_data)
     response.status_code = status_code
