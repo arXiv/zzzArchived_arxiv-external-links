@@ -92,12 +92,12 @@ class TestExternalAPIRoutes(TestCase):
         self.assertDictEqual(json.loads(response.data), expected_data)
 
 
-    @mock.patch(f'{api.__name__}.controllers.get_relations')
-    def test_get_relations(self, mock_get_relations: Any) -> None:
+    @mock.patch(f'{api.__name__}.controllers.retrieve')
+    def test_get_relations(self, mock_retrieve: Any) -> None:
         """Endpoint /api/<string:arxiv_id_str>v<int:arxiv_ver> returns JSON about all relations belonging to an id."""
 
         return_data = {'relation1':{'description':''},'relation2':{'description':''}}
-        mock_get_relations.return_value = return_data, HTTPStatus.OK, {}
+        mock_retrieve.return_value = return_data, HTTPStatus.OK, {}
         token = generate_token('1234', 'foo@user.com', 'foouser',
                                scope=[])
         response = self.client.get('/api/TESTv1',headers={'Authorization':token})
@@ -108,12 +108,12 @@ class TestExternalAPIRoutes(TestCase):
         self.assertDictEqual(json.loads(response.data), expected_data)
 
 
-    @mock.patch(f'{api.__name__}.controllers.get_events')
-    def test_get_events(self, mock_get_events: Any) -> None:
+    @mock.patch(f'{api.__name__}.controllers.retrieve')
+    def test_get_events(self, mock_retrieve: Any) -> None:
         """Endpoint /api/<string:arxiv_id_str>v<int:arxiv_ver>/log returns JSON about all events belonging to an id."""
 
         return_data = {'event1':{'description':''},'event1':{'description':''}}
-        mock_get_events.return_value = return_data, HTTPStatus.OK, {}
+        mock_retrieve.return_value = return_data, HTTPStatus.OK, {}
         token = generate_token('1234', 'foo@user.com', 'foouser',
                                scope=[])
         response = self.client.get('/api/TESTv1/log',headers={'Authorization':token})
