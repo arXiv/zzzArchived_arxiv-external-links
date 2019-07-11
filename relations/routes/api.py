@@ -24,7 +24,7 @@ def service_status() -> Response:
 
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/relations', methods=['POST'])
 def create_new(arxiv_id_str: str, arxiv_ver: int) -> Response:
-    """create a new relation for an e-print"""
+    """Create a new relation for an e-print."""
     response_data, status_code, headers = controllers.create_new(arxiv_id_str, arxiv_ver, request.data)
     response: Response = jsonify(response_data)
     response.status_code = status_code
