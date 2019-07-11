@@ -18,6 +18,8 @@ flask = "*"
 arxiv-base = "*"
 arxiv-auth = "==0.3.4rc1"
 pytz = "*"
+sqlalchemy = "*"
+flask-sqlalchemy = "*"
 
 [requires]
 python_version = "3.6"
