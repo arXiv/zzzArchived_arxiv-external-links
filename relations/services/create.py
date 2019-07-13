@@ -2,9 +2,11 @@
 
 from datetime import datetime
 from typing import Optional
+from pytz import UTC
 from relations.domain import ArXivID, EPrint, Relation, RelationID, \
     RelationType, Resource
-from .model import db, RelationDB, ActivationDB
+from .get import from_id
+from .model import db, RelationDB
 from .util import relation_from_DB
 
 
@@ -49,14 +51,11 @@ def create(arxiv_id: ArXivID,
                           resource_type=resource_type,
                           resource_id=resource_id,
                           description=description,
-                          added_at=datetime.now(),
+                          added_at=datetime.now(UTC),
                           creator=creator,
                           supercedes_or_suppresses=None)
     try:
         db.session.add(rel_data)
-        activation = ActivationDB(id=rel_data.id,
-                                  active=True)
-        db.session.add(activation)
         db.session.commit()
 
     except Exception as e:
@@ -69,7 +68,7 @@ def create(arxiv_id: ArXivID,
 
 def supercede(arxiv_id: ArXivID,
               arxiv_ver: int,
-              relation_id: Optional[RelationID],
+              relation_id: RelationID,
               resource_type: str,
               resource_id: str,
               description: str,
@@ -107,21 +106,17 @@ def supercede(arxiv_id: ArXivID,
                           resource_type=resource_type,
                           resource_id=resource_id,
                           description=description,
-                          added_at=datetime.now(),
+                          added_at=datetime.now(UTC),
                           creator=creator,
-                          supercedes_or_suppresses=str(relation_id))
+                          supercedes_or_suppresses=relation_id)
     try:
-        # deactivate the previous relation
-        prev_act = db.session.query(ActivationDB) \
-            .filter(ActivationDB.id == relation_id) \
-            .one()
-        prev_act.active = False
+        # check the previous relation
+        prev_rel = from_id(relation_id)
+        if prev_rel.relation_type == RelationType.SUPPRESS:
+            raise StorageError('Cannot suppress a SUPPRESS relation')
 
         # register
         db.session.add(rel_data)
-        act_data = ActivationDB(id=rel_data.id,
-                                active=True)
-        db.session.add(act_data)
         db.session.commit()
 
     except Exception as e:
@@ -134,7 +129,7 @@ def supercede(arxiv_id: ArXivID,
 
 def suppress(arxiv_id: ArXivID,
              arxiv_ver: int,
-             relation_id: Optional[RelationID],
+             relation_id: RelationID,
              description: str,
              creator: Optional[str]) -> Relation:
     """
@@ -160,32 +155,23 @@ def suppress(arxiv_id: ArXivID,
 
     """
     try:
-        # deactivate the previous relation
-        prev_rel = db.session.query(RelationDB) \
-            .filter(RelationDB.id == relation_id) \
-            .one()
-
-        # deactivate the previous relation
-        prev_act = db.session.query(ActivationDB) \
-            .filter(ActivationDB.id == relation_id) \
-            .one()
-        prev_act.active = False
+        # check the previous relation
+        prev_rel = from_id(relation_id)
+        if prev_rel.relation_type == RelationType.SUPPRESS:
+            raise StorageError('Cannot suppress a SUPPRESS relation')
 
         # store it to DB
         rel_data = RelationDB(rel_type=RelationType.SUPPRESS,
                               arxiv_id=str(arxiv_id),
                               arxiv_ver=arxiv_ver,
-                              resource_type=prev_rel.resource_type,
-                              resource_id=prev_rel.resource_id,
+                              resource_type=prev_rel.resource.resource_type,
+                              resource_id=prev_rel.resource.identifier,
                               description=description,
-                              added_at=datetime.now(),
+                              added_at=datetime.now(UTC),
                               creator=creator,
                               supercedes_or_suppresses=str(relation_id))
         # register
         db.session.add(rel_data)
-        act_data = ActivationDB(id=rel_data.id,
-                                active=True)
-        db.session.add(act_data)
         db.session.commit()
 
     except Exception as e:

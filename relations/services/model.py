@@ -1,6 +1,7 @@
 """ORM model for relations service."""
 
-from sqlalchemy import Column, DateTime, Enum, Integer, String, Text, Boolean
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, \
+    Text, Boolean
 from flask_sqlalchemy import SQLAlchemy, Model
 from relations.domain import RelationType
 
@@ -20,12 +21,6 @@ class RelationDB(db.Model):
     description = Column(Text(1024))
     added_at = Column(DateTime)
     creator = Column(String(255), nullable=True)
-    supercedes_or_suppresses = Column(String(255), nullable=True)
-
-
-class ActivationDB(db.Model):
-    """Model for relations."""
-
-    __tablename__ = 'active_records'
-    id = Column(Integer, primary_key=True)
-    active = Column(Boolean)
+    supercedes_or_suppresses = Column(Integer,
+                                      ForeignKey('relations.id'),
+                                      nullable=True)

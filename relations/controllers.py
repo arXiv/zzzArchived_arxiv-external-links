@@ -182,8 +182,8 @@ def suppress(arxiv_id_str: str,
 
     prev_rel_id: RelationID = resolve_relation_id(relation_id_str)
     try:
-        # get the previous relation
-        prev_rel: Relation = from_id(prev_rel_id)
+        # try get the previous relation -- needs to exist
+        from_id(prev_rel_id)
 
         # check if the previous relation is active
         if not is_active(prev_rel_id):
@@ -247,12 +247,12 @@ def retrieve(arxiv_id_str: str,
         # retrieve
         rels: List[Relation] = from_e_print(arxiv_id, arxiv_ver, active_only)
 
-        # encode to response
-        result: Dict[str, Any] = {}
-        for rel in rels:
-            result[str(rel.identifier)] = rel._asdict()
-        return result, HTTPStatus.OK, {}
-
     except DBLookUpError as lue:
         raise InternalServerError("A failure occured in looking up relations") \
             from lue
+
+    # encode to response
+    result: Dict[str, Any] = {}
+    for rel in rels:
+        result[str(rel.identifier)] = rel._asdict()
+    return result, HTTPStatus.OK, {}

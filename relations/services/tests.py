@@ -35,9 +35,6 @@ class TestRelationCreator(TestCase):
                               added_at=datetime.now())
         self.relDB = self.create.RelationDB(**self.prev_data)  # type: ignore
         self.create.db.session.add(self.relDB)    # type: ignore
-        self.active = dict(id=self.relDB.id, active=True)  # type: ignore
-        self.actDB = self.create.ActivationDB(**self.active)  # type: ignore
-        self.create.db.session.add(self.actDB)  # type: ignore
         self.create.db.session.commit()     # type: ignore
 
     def tearDown(self) -> None:
@@ -79,11 +76,6 @@ class TestRelationCreator(TestCase):
         self.assertEqual(rel_db.creator, "tester")
         self.assertEqual(rel_db.supercedes_or_suppresses, None)
 
-        # assert it is active
-        query2 = session.query(self.create.ActivationDB)  # type: ignore
-        act_db = query2.get(rel.identifier)  # type: ignore
-        self.assertEqual(act_db.active, True)
-
     def test_supercede(self) -> None:
         """Add new relation that supercedes another."""
         rel = self.create.supercede(resolve_arxiv_id("1234.78901"),  # type: ignore
@@ -106,7 +98,7 @@ class TestRelationCreator(TestCase):
         self.assertEqual(rel.resource.identifier, "10.1023/hage.2018.7.13")
         self.assertEqual(rel.description, "test")
         self.assertEqual(rel.creator, "tester")
-        self.assertEqual(rel.supercedes_or_suppresses, str(self.relDB.id))
+        self.assertEqual(rel.supercedes_or_suppresses, self.relDB.id)
 
         # check the record is cetainly created on DB
         self.assertEqual(rel_db.rel_type, RelationType.EDIT)
@@ -117,16 +109,7 @@ class TestRelationCreator(TestCase):
         self.assertEqual(rel_db.description, "test")
         self.assertEqual(rel_db.added_at, rel.added_at)
         self.assertEqual(rel_db.creator, "tester")
-        self.assertEqual(rel_db.supercedes_or_suppresses, str(self.relDB.id))
-
-        # assert it is active
-        query2 = session.query(self.create.ActivationDB)  # type: ignore
-        act_db = query2.get(rel.identifier)  # type: ignore
-        self.assertEqual(act_db.active, True)
-
-        # and the previous one is inactive
-        act_db = query2.get(int(rel.supercedes_or_suppresses))  # type: ignore
-        self.assertEqual(act_db.active, False)
+        self.assertEqual(rel_db.supercedes_or_suppresses, self.relDB.id)
 
     def test_suppress(self) -> None:
         """Add new relation that suppresses another."""
@@ -148,7 +131,7 @@ class TestRelationCreator(TestCase):
         self.assertEqual(rel.resource.identifier, "10.1023/hage.2018.7.11")
         self.assertEqual(rel.description, "test")
         self.assertEqual(rel.creator, "tester")
-        self.assertEqual(rel.supercedes_or_suppresses, str(self.relDB.id))
+        self.assertEqual(rel.supercedes_or_suppresses, self.relDB.id)
 
         # check the record is cetainly created on DB
         self.assertEqual(rel_db.rel_type, RelationType.SUPPRESS)
@@ -159,16 +142,7 @@ class TestRelationCreator(TestCase):
         self.assertEqual(rel_db.description, "test")
         self.assertEqual(rel_db.added_at, rel.added_at)
         self.assertEqual(rel_db.creator, "tester")
-        self.assertEqual(rel_db.supercedes_or_suppresses, str(self.relDB.id))
-
-        # assert it is active
-        query2 = session.query(self.create.ActivationDB)  # type: ignore
-        act_db = query2.get(rel.identifier)  # type: ignore
-        self.assertEqual(act_db.active, True)
-
-        # and the previous one is inactive
-        act_db = query2.get(int(rel.supercedes_or_suppresses))  # type: ignore
-        self.assertEqual(act_db.active, False)
+        self.assertEqual(rel_db.supercedes_or_suppresses, self.relDB.id)
 
 
 class TestRelationGetter(TestCase):
@@ -209,7 +183,7 @@ class TestRelationGetter(TestCase):
                           added_at=datetime.now()),
                      dict(arxiv_id=resolve_arxiv_id("1234.78901"),  # type: ignore
                           arxiv_ver=2,
-                          supercedes_or_suppresses=3,
+                          supercedes_or_suppresses=2,
                           rel_type=RelationType.EDIT,
                           resource_type="DOI",
                           resource_id="10.1023/hage.2018.7.13",
@@ -218,15 +192,6 @@ class TestRelationGetter(TestCase):
                           added_at=datetime.now())]
         self.relDBs = [self.get.RelationDB(**d) for d in self.data]  # type: ignore
         for d in self.relDBs:
-            self.get.db.session.add(d)    # type: ignore
-        self.get.db.session.commit()     # type: ignore
-
-        # add activation data
-        self.actives = [dict(id=1, active=True),   # type: ignore
-                        dict(id=2, active=False),  # type: ignore
-                        dict(id=3, active=True)]   # type: ignore
-        self.actDBs = [self.get.ActivationDB(**d) for d in self.actives]  # type: ignore
-        for d in self.actDBs:
             self.get.db.session.add(d)    # type: ignore
         self.get.db.session.commit()     # type: ignore
 
