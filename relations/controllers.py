@@ -10,13 +10,14 @@ can split this into ``controllers/api.py`` and ``controllers/ui.py``.
 
 from typing import Tuple, Any, Dict, List
 from http import HTTPStatus
-
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
     resolve_arxiv_id, resolve_relation_id, support_json_default
-from relations.services.create import create, StorageError
-from relations.services.get import from_id, NotFoundError, DBLookUpError
+from relations.services import create
+from relations.services.create import StorageError
+from relations.services.get import from_id, is_active, from_e_print, \
+    NotFoundError, DBLookUpError
 
 Response = Tuple[Dict[str, Any], HTTPStatus, Dict[str, str]]
 
@@ -60,14 +61,12 @@ def create_new(arxiv_id_str: str,
 
     # get relation
     try:
-        rel: Relation = create(arxiv_id,
-                               arxiv_ver,
-                               None,
-                               RelationType.ADD,
-                               payload['resource_type'],
-                               payload['resource_id'],
-                               payload.get('description', ''),
-                               payload.get('creator'))
+        rel: Relation = create.create(arxiv_id,
+                                      arxiv_ver,
+                                      payload['resource_type'],
+                                      payload['resource_id'],
+                                      payload.get('description', ''),
+                                      payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = rel._asdict()
@@ -115,18 +114,18 @@ def supercede(arxiv_id_str: str,
 
     prev_rel_id: RelationID = resolve_relation_id(relation_id_str)
     try:
-        # try get the previous relation
-        from_id(prev_rel_id)
+        # check if the previous relation is active
+        if not is_active(prev_rel_id):
+            raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
-        new_rel: Relation = create(arxiv_id,
-                                   arxiv_ver,
-                                   prev_rel_id,
-                                   RelationType.EDIT,
-                                   payload['resource_type'],
-                                   payload['resource_id'],
-                                   payload.get('description', ''),
-                                   payload.get('creator'))
+        new_rel: Relation = create.supercede(arxiv_id,
+                                             arxiv_ver,
+                                             prev_rel_id,
+                                             payload['resource_type'],
+                                             payload['resource_id'],
+                                             payload.get('description', ''),
+                                             payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = new_rel._asdict()
@@ -143,7 +142,7 @@ def supercede(arxiv_id_str: str,
 
     except DBLookUpError as lue:
         raise InternalServerError("A failure occured in "
-                                 "looking up the previous relation") \
+                                  "looking up the previous relation") \
             from lue
 
     except StorageError as se:
@@ -183,18 +182,19 @@ def suppress(arxiv_id_str: str,
 
     prev_rel_id: RelationID = resolve_relation_id(relation_id_str)
     try:
-        # get the previous relation
-        prev_rel: Relation = from_id(prev_rel_id)
+        # try get the previous relation -- needs to exist
+        from_id(prev_rel_id)
+
+        # check if the previous relation is active
+        if not is_active(prev_rel_id):
+            raise InternalServerError("The previous relation is already inactive.")
 
         # get new relations that supercedes the prev
-        new_rel: Relation = create(arxiv_id,
-                                   arxiv_ver,
-                                   prev_rel_id,
-                                   RelationType.SUPPRESS,
-                                   prev_rel.resource.resource_type,
-                                   prev_rel.resource.identifier,
-                                   payload.get('escription', ''),
-                                   payload.get('creator'))
+        new_rel: Relation = create.suppress(arxiv_id,
+                                            arxiv_ver,
+                                            prev_rel_id,
+                                            payload.get('description', ''),
+                                            payload.get('creator'))
 
         # create the result value
         result: Dict[str, Any] = new_rel._asdict()
@@ -213,3 +213,46 @@ def suppress(arxiv_id_str: str,
 
     except StorageError as se:
         raise InternalServerError("An error occured in storage") from se
+
+
+def retrieve(arxiv_id_str: str,
+             arxiv_ver: int,
+             active_only: bool) -> Response:
+    """
+    Retrieve relations associated with an e-print.
+
+    Parameters
+    ----------
+    arxiv_id_str: str
+        The arXiv ID of the e-print.
+    arxiv_ver: int
+        The version of the e-print.
+    active_only: bool
+        When it is true, the return value will only include active links.
+
+    Returns
+    -------
+    Dict[str, Any]
+        A collection of relations, whose key is an ID, and whose value is
+        the corresponding relation.
+    HTTPStatus
+        An HTTP status code.
+    Dict[str, str]
+        blank.
+
+    """
+    # get arxiv ID from str
+    arxiv_id: ArXivID = resolve_arxiv_id(arxiv_id_str)
+    try:
+        # retrieve
+        rels: List[Relation] = from_e_print(arxiv_id, arxiv_ver, active_only)
+
+    except DBLookUpError as lue:
+        raise InternalServerError("A failure occured in looking up relations") \
+            from lue
+
+    # encode to response
+    result: Dict[str, Any] = {}
+    for rel in rels:
+        result[str(rel.identifier)] = rel._asdict()
+    return result, HTTPStatus.OK, {}

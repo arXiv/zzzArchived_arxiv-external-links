@@ -58,11 +58,11 @@ def support_json_default(o: Any) -> Any:
     if isinstance(o, RelationType):
         if o == RelationType.ADD:
             return "ADD"
-        elif o == RelationType.EDIT:
+        if o == RelationType.EDIT:
             return "EDIT"
-        else:  # RelationType.SUPPRESS
-            return "SUPPRESS"
-    elif isinstance(o, datetime):
+        # RelationType.SUPPRESS
+        return "SUPPRESS"
+    if isinstance(o, datetime):
         return o.isoformat()
 
     raise TypeError(repr(o) + " is not JSON serializable")
