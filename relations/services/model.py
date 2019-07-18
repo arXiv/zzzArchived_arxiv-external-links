@@ -1,6 +1,7 @@
 """ORM model for relations service."""
 
-from sqlalchemy import Column, DateTime, Enum, Integer, String, Text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, \
+    Text, Boolean
 from flask_sqlalchemy import SQLAlchemy, Model
 from relations.domain import RelationType
 
@@ -20,4 +21,6 @@ class RelationDB(db.Model):
     description = Column(Text(1024))
     added_at = Column(DateTime)
     creator = Column(String(255), nullable=True)
-    supercedes_or_suppresses = Column(Integer, nullable=True)
+    supercedes_or_suppresses = Column(Integer,
+                                      ForeignKey('relations.id'),
+                                      nullable=True)

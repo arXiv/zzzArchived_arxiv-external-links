@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preprint identifier="SPIRES DOI and Journal Feed" version="0.1" xmlns="http://arxiv.org/doi_feed" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/doi_feed http://arxiv.org/schemas/doi_feed.xsd">
+  <date year="2008" month="01" day="01"/>
+  <article preprint_id="arXiv:test/0108010" journal_ref="J.Flip. (10) 1-10 (2008)"/>
+  <article preprint_id="arXiv:test/0108011" doi="1234.56/something/doi"/>
+</preprint>
+
