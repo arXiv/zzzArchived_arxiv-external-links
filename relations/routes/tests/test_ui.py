@@ -105,7 +105,7 @@ class TestUIRoutes(TestCase):
     def test_get_relations(self, mock_retrieve: Any) -> None:
         """Endpoint /<string:arxiv_id_str>v<int:arxiv_ver> returns html about all relations belonging to an id."""
 
-        return_data={'rel1':{'key1':'val1'},'rel2':{'key1':'val2'}}
+        return_data={'relations':[{'key1':'val1'},{'key1':'val2'}]}  
         mock_retrieve.return_value = return_data, HTTPStatus.OK, {}
         token = generate_token('1234', 'foo@user.com', 'foouser',
                                scope=[])
@@ -119,7 +119,7 @@ class TestUIRoutes(TestCase):
     def test_get_events(self, mock_retrieve: Any) -> None:
         """Endpoint /<string:arxiv_id_str>v<int:arxiv_ver>/log returns html about all events belonging to an id."""
 
-        return_data={'rel1':{'key1':'val1'},'rel2':{'key1':'val2'}}
+        return_data={'relations':[{'key1':'val1'},{'key1':'val2'}]}  
         mock_retrieve.return_value = return_data, HTTPStatus.OK, {}
         token = generate_token('1234', 'foo@user.com', 'foouser',
                                scope=[])
