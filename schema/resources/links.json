@@ -30,12 +30,17 @@
     "type": "array",
     "items": {
         "type": "object",
-        "patternProperties": {
-            "^\\$schema$": {
+        "properties": {
+            "$schema": {
                 "type": "string",
                 "format": "uri"
             },
-            "^[0-9]{4}\\.[0-9]{5}$": {
+            "e_print": {
+                "type": "object", 
+                "additionalProperties": { "$ref": "#/definitions/e_print" },
+                "default": {}
+            },
+            "relations": {
                 "type": "object",
                 "properties": {
                     "identifier": {
