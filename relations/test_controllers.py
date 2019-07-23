@@ -6,8 +6,7 @@ from datetime import datetime
 from typing import Any
 from werkzeug.exceptions import InternalServerError
 from relations.controllers import create_new, supercede, suppress, retrieve
-from relations.domain import Relation, RelationType, EPrint, Resource, \
-    support_json_default
+from relations.domain import Relation, RelationType, EPrint, Resource
 from relations.services.create import StorageError
 from relations.services.get import NotFoundError, DBLookUpError
 

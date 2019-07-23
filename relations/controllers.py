@@ -13,7 +13,7 @@ from http import HTTPStatus
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
-    resolve_arxiv_id, resolve_relation_id, support_json_default
+    resolve_arxiv_id, resolve_relation_id
 from relations.services import create
 from relations.services.create import StorageError
 from relations.services.get import from_id, is_active, from_e_print, \
