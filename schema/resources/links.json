@@ -1,0 +1,81 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schema for e-print external relations view",
+    "definitions": {
+        "e_print": {
+            "type": "object",
+            "properties": {
+                "arxiv_id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            },
+            "required": ["arxiv_id", "version"]
+        },
+        "resource": {
+            "type": "object",
+            "properties": {
+                "resource_type": {
+                    "type": "string"
+                },
+                "identifier": {
+                    "type": "string"
+                }
+            },
+            "required": ["resource_type", "identifier"]
+        }
+    },
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "$schema": {
+                "type": "string",
+                "format": "uri"
+            },
+            "e_print": {
+                "type": "object", 
+                "additionalProperties": { "$ref": "#/definitions/e_print" },
+                "default": {}
+            },
+            "relations": {
+                "type": "object",
+                "properties": {
+                    "identifier": {
+                        "type": "integer"
+                    },
+                    "relation_type": {
+                        "type": "integer"
+                    },
+                    "e_print": {
+                        "type": "object", 
+                        "additionalProperties": { "$ref": "#/definitions/e_print" },
+                        "default": {}
+                    },
+                    "resource": {
+                        "type": "object", 
+                        "additionalProperties": { "$ref": "#/definitions/resource" },
+                        "default": {}
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "added_at": {
+                        "type": "string"
+                    },
+                    "creator": {
+                        "type": ["string", "null"]
+                    },
+                    "supercedes_or_suppresses": {
+                        "type": ["integer", "null"]
+                    }
+                },
+                "required": ["identifier", "relation_type", "e_print", "resource"]
+            }
+        }
+    },
+    "uniqueItems": true,
+    "default": []
+}
