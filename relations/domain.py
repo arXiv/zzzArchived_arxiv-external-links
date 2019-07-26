@@ -51,18 +51,3 @@ class Relation(NamedTuple):
     added_at: datetime
     creator: Optional[str]
     supercedes_or_suppresses: Optional[RelationID]
-
-
-def support_json_default(o: Any) -> Any:
-    """Support JSON serialization of Relation."""
-    if isinstance(o, RelationType):
-        if o == RelationType.ADD:
-            return "ADD"
-        if o == RelationType.EDIT:
-            return "EDIT"
-        # RelationType.SUPPRESS
-        return "SUPPRESS"
-    if isinstance(o, datetime):
-        return o.isoformat()
-
-    raise TypeError(repr(o) + " is not JSON serializable")

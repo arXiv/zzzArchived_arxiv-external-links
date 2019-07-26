@@ -1,1 +1,1 @@
-"""Tests for ui and api routes"""
+"""Tests for ui and api routes."""

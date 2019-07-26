@@ -13,7 +13,7 @@ from http import HTTPStatus
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from relations.domain import Relation, RelationID, RelationType, ArXivID, \
-    resolve_arxiv_id, resolve_relation_id, support_json_default
+    resolve_arxiv_id, resolve_relation_id
 from relations.services import create
 from relations.services.create import StorageError
 from relations.services.get import from_id, is_active, from_e_print, \
@@ -233,8 +233,8 @@ def retrieve(arxiv_id_str: str,
     Returns
     -------
     Dict[str, Any]
-        A collection of relations, whose key is an ID, and whose value is
-        the corresponding relation.
+        A collection of relations. it contains e-print ID and version, and
+        a list of corresponding relations.
     HTTPStatus
         An HTTP status code.
     Dict[str, str]
@@ -246,13 +246,14 @@ def retrieve(arxiv_id_str: str,
     try:
         # retrieve
         rels: List[Relation] = from_e_print(arxiv_id, arxiv_ver, active_only)
+        dicts: List[Dict[str, Any]] = list(map(lambda x: x._asdict(), rels))
 
     except DBLookUpError as lue:
         raise InternalServerError("A failure occured in looking up relations") \
             from lue
 
     # encode to response
-    result: Dict[str, Any] = {}
-    for rel in rels:
-        result[str(rel.identifier)] = rel._asdict()
+    result: Dict[str, Any] = {"arxiv_id": arxiv_id,
+                              "version": arxiv_ver,
+                              "relations": dicts}
     return result, HTTPStatus.OK, {}
