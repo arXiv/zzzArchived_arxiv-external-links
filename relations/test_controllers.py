@@ -6,8 +6,7 @@ from datetime import datetime
 from typing import Any
 from werkzeug.exceptions import InternalServerError
 from relations.controllers import create_new, supercede, suppress, retrieve
-from relations.domain import Relation, RelationType, EPrint, Resource, \
-    support_json_default
+from relations.domain import Relation, RelationType, EPrint, Resource
 from relations.services.create import StorageError
 from relations.services.get import NotFoundError, DBLookUpError
 
@@ -495,7 +494,9 @@ class TestRelationController(TestCase):
         res1, status, res2 = retrieve(rel.e_print.arxiv_id,
                                       rel.e_print.version,
                                       True)
-        self.assertDictEqual(res1, {rel.identifier: rel._asdict()})
+        self.assertDictEqual(res1, {'arxiv_id': rel.e_print.arxiv_id,
+                                    'version': rel.e_print.version,
+                                    'relations': [rel._asdict()]})
         self.assertEqual(status, HTTPStatus.OK)
         self.assertDictEqual(res2, {})
 
@@ -565,5 +566,5 @@ class Testntegration(TestCase):
         self.assertEqual(status2, HTTPStatus.OK)
 
         # compare
-        self.assertEqual(len(res2), 1)
-        self.assertIn(res1, res2.values())
+        self.assertEqual(len(res2['relations']), 1)
+        self.assertIn(res1, res2['relations'])
