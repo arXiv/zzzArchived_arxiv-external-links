@@ -22,6 +22,7 @@ def service_status() -> Response:
     response.headers.extend(headers)
     return response
 
+
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/relations', methods=['POST'])
 def create_new(arxiv_id_str: str, arxiv_ver: int) -> Response:
     """Create a new relation for an e-print."""
@@ -32,6 +33,7 @@ def create_new(arxiv_id_str: str, arxiv_ver: int) -> Response:
     response.status_code = status_code
     response.headers.extend(headers)
     return response
+
 
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/relations/<string:relation_id_str>', methods=['PUT'])
 def supercede(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Response:
@@ -45,6 +47,7 @@ def supercede(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Respon
     response.headers.extend(headers)
     return response
 
+
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/relations/<string:relation_id_str>', methods=['DELETE'])
 def suppress(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Response:
     """Create a new relation for an e-print which supresses an existing relation."""
@@ -57,19 +60,23 @@ def suppress(arxiv_id_str: str, arxiv_ver: int, relation_id_str: str) -> Respons
     response.headers.extend(headers)
     return response
 
+
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>', methods=['GET'])
 def get_relations(arxiv_id_str: str, arxiv_ver: int) -> Response:
     """Get all active (not suppressed or superseded) relations for an e-print."""
-    response_data, status_code, headers = controllers.retrieve(arxiv_id_str, arxiv_ver, active_only=True)
+    response_data, status_code, headers = \
+        controllers.retrieve(arxiv_id_str, arxiv_ver, active_only=True)
     response: Response = jsonify(response_data)
     response.status_code = status_code
     response.headers.extend(headers)
     return response
 
+
 @blueprint.route('/<string:arxiv_id_str>v<int:arxiv_ver>/log', methods=['GET'])
 def get_events(arxiv_id_str: str, arxiv_ver: int) -> Response:
     """Get the complete set of relation events (including suppressed and superseded)."""
-    response_data, status_code, headers = controllers.retrieve(arxiv_id_str, arxiv_ver, active_only=False)
+    response_data, status_code, headers = \
+        controllers.retrieve(arxiv_id_str, arxiv_ver, active_only=False)
     response: Response = jsonify(response_data)
     response.status_code = status_code
     response.headers.extend(headers)
